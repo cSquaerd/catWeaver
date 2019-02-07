@@ -1,0 +1,54 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,total={7.5in,10in}]{geometry}
+\usepackage{ragged2e}
+\usepackage{tabularx}
+\renewcommand{\ttdefault}{txtt}
+\renewcommand{\familydefault}{\ttdefault}
+
+\begin{document}
+	\begin{Center}
+		%Charles Cook \& Sean Curry | 1/27/19
+		CSC 4400 Software Engineering
+		%Software Engineering | Project
+		\linebreak
+
+		\LARGE
+		\textbf{Cellular Automaton Tiling Weaver}
+	\end{Center}
+
+	\begin{FlushLeft}
+		\section*{\textit{DESCRIPTION:}}
+		The CATWeaver allows the user to construct bitmap images of tile-like patterns based on cellular automaton generation algorithms. Output file types for images include PNG and BMP. Chief among these are Rule 30, the Toothpick sequence, and Langton's Ant. The first is a one dimensional automaton, and the latter two are two dimensional automata. In addition to generation, the user can set up their own automaton rules, and save/load these rules via JSON files.
+		\section*{\textit{DEVELOPERS:}}
+		Charles Cook \& Sean Curry
+		\linebreak \linebreak
+
+		%\section*{\textit{USER TYPES:}}
+		\begin{tabular}{|r|r|r|}
+			\hline & & \\
+			\large \textbf{USER TYPE} & \large \textbf{FUNCTIONALITY} & \large \textbf{DEVELOPED BY}
+			\\ \hline
+			Printer & Selects from preset automata and generates images & Sean
+			\\
+			& (outputs .bmp or .png files) &
+			\\ \hline
+			Instructor & Assembles custom instructions for automata and & Charles
+			\\
+			& loads them in by using a GUI menu &
+			\\
+			& with selection dialog windows &
+			\\
+			& (inputs and outputs .json files) &
+			\\ \hline
+		\end{tabular}
+
+		\section*{\textit{Platform:}}
+		Standalone desktop application, cross platform (Windows, MacOS, Linux)
+
+		\section*{\textit{Language:}}
+		Python (with the \textit{tkinter} module for GUI design)
+
+		\section*{\textit{Database:}}
+		JSON (for importing/exporting custom automaton rules)
+	\end{FlushLeft}
+\end{document}
