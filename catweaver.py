@@ -7,6 +7,8 @@ import random as rnd
 import platform as pt
 import time
 
+import utilities
+
 if pt.system() == "Linux":
 	id = "~"
 elif pt.system() == "Windows":
