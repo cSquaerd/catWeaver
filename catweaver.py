@@ -23,7 +23,16 @@ class dialogCustomizeRules(sdg.Dialog):
 	def body(self, master):
 		self.title("Customize " + self.baseRules + " Rules")
 		self.resizable(False, False)
-		tk.Label(self, text = "Foo!", font = fontNormal).pack()
+		#tk.Label(self, text = "Foo!", font = fontNormal).pack()
+		if self.baseRules.upper() == "LANGTON\'S ANT":
+			self.varColors = tk.IntVar(self, 2)
+			tk.OptionMenu( \
+				self, \
+				self.varColors, \
+				2, 3, 4, 5, 6, 7 \
+			).pack()
+		else:
+			tk.Label(self, text = "Customization for this automaton is pending construction.").pack()
 	def apply(self):
 		pass
 
