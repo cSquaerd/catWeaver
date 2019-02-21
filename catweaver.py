@@ -15,29 +15,122 @@ if pt.system() == "Linux":
 elif pt.system() == "Windows":
 	id = "C:\\"
 
-# Rule customizatoin dialog window
-class dialogCustomizeRules(sdg.Dialog):
-	def __init__(self, master, br):
-		self.baseRules = br
+stringCreateRules = "Create Rules (with dialog)"
+stringLoadRules = "Load Rules (from .json)"
+stringModifyRules = "Modify Rules (from .json)"
+
+# Rule customization root dialog window
+class dialogRootCustomizeRules(sdg.Dialog):
+	def __init__(self, master, atmt):
+		self.automaton = atmt
 		super().__init__(master)
 	def body(self, master):
-		self.title("Customize " + self.baseRules + " Rules")
+		self.title("Customize Rules")
 		self.resizable(False, False)
-		#tk.Label(self, text = "Foo!", font = fontNormal).pack()
-		if self.baseRules.upper() == "LANGTON\'S ANT":
-			self.varColors = tk.IntVar(self, 2)
-			tk.OptionMenu( \
-				self, \
-				self.varColors, \
-				2, 3, 4, 5, 6, 7 \
-			).pack()
-		else:
-			tk.Label(self, text = "Customization for this automaton is pending construction.").pack()
+		self.varCustomizeChoice = tk.StringVar(self, stringCreateRules)
+		tk.Label(self, text = "Current Automaton:", font = fontNormal).pack()
+		tk.Label(self, text = self.automaton, font = fontNormal).pack()
+		self.optionsCustomize = tk.OptionMenu( \
+			self, \
+			self.varCustomizeChoice, \
+			stringCreateRules, \
+			stringLoadRules, \
+			stringModifyRules \
+		)
+		self.optionsCustomize.pack()
 	def apply(self):
-		pass
+		self.result = self.varCustomizeChoice.get()
 
+# Rule customization "leaf" dialog window
+class dialogNewCustomizeRules(sdg.Dialog):
+	def __init__(self, master, atmt):
+		self.automaton = atmt
+		super().__init__(master)
+	def refreshLAFields(self):
+		for w in self.frameLAColors.grid_slaves():
+			w.destroy()
+		for w in self.frameLARules.grid_slaves():
+			w.destroy()
+
+		tk.Label(self.frameLARules, text = "Read Color").grid(row = 0, column = 0)
+		tk.Label(self.frameLARules, text = "Rotation").grid(row = 0, column = 1)
+		tk.Label(self.frameLARules, text = "Write Color").grid(row = 0, column = 2)
+
+		self.fields = {}
+		for i in range(0, self.varNumColors.get()):
+			localField = {}
+
+
+			tk.Label( \
+				self.frameLAColors, text = "Color " + str(i), \
+				font = fontNormal \
+			).grid(row = i, column = 0)
+			localField["varColor"] = tk.StringVar(self, "#000000")
+			tk.Entry( \
+				self.frameLAColors, \
+				textvariable = localField["varColor"], \
+				font = fontNormal \
+			).grid(row = i, column = 1)
+
+			localField["varRead"] = tk.IntVar(self, i)
+			tk.OptionMenu( \
+				self.frameLARules, localField["varRead"], \
+				i \
+			).grid(row = i + 1, column = 0)
+
+			localField["varRotate"] = tk.StringVar(self, "L90")
+			tk.OptionMenu( \
+				self.frameLARules, localField["varRotate"], \
+				"L90", "R90", "180" \
+			).grid(row = i + 1, column = 1)
+
+			localField["varWrite"] = tk.IntVar(self, 0)
+			tk.OptionMenu( \
+				self.frameLARules, localField["varWrite"], \
+				*tuple(range(0, self.varNumColors.get())) \
+			).grid(row = i + 1, column = 2)
+
+			self.fields[i] = localField
+
+	def body(self, master):
+		self.title("Customize " + self.automaton + " Rules")
+		self.resizable(False, False)
+		if self.automaton == "Langton\'s Ant":
+			self.varNumColors = tk.IntVar(self, 2)
+			self.optionsNumColors = tk.OptionMenu( \
+				master, self.varNumColors, \
+				2, 3, 4, 5, 6, 7, 8 \
+			)
+			self.buttonRefresh = tk.Button( \
+				master, text = "Refresh Fields", \
+				command = self.refreshLAFields, \
+				font = fontNormal \
+			)
+			self.frameLAColors = tk.LabelFrame( \
+				master, text = "Colors", \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			self.frameLARules = tk.LabelFrame( \
+				master, text = "Rules", \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			self.optionsNumColors.grid(row = 0, column = 0)
+			self.buttonRefresh.grid(row = 0, column = 1)
+			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2)
+			self.frameLARules.grid(row = 2, column = 0, columnspan = 2)
+		else:
+			tk.Label(self, text = "Under construction!", font = fontBig).pack()
+	def apply(self):
+		self.result = self.fields
+
+# Rule customization function
 def customizeRules():
-	dialogCustomizeRules(base, option_var.get())
+	choice = dialogRootCustomizeRules(base, option_var.get()).result
+	if choice == stringCreateRules:
+		result = dialogNewCustomizeRules(base, option_var.get()).result
+		print(result)
+		if result is dict:
+			pass
 	return None
 
 base = tk.Tk()
@@ -46,6 +139,7 @@ base.resizable(False, False)
 
 # Some fonts
 fontNormal = tkf.Font(family = "Consolas", size = 10)
+fontBig = tkf.Font(family = "Consolas", size = 20)
 
 viewer = tk.LabelFrame(base, text="Image Render", bd = 4, font=fontNormal)
 viewer.grid(row = 0, column = 0, padx = 2, pady = 2)
