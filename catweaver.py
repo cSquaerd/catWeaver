@@ -52,9 +52,9 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		for w in self.frameLARules.grid_slaves():
 			w.destroy()
 
-		tk.Label(self.frameLARules, text = "Read Color").grid(row = 0, column = 0)
-		tk.Label(self.frameLARules, text = "Rotation").grid(row = 0, column = 1)
-		tk.Label(self.frameLARules, text = "Write Color").grid(row = 0, column = 2)
+		tk.Label(self.frameLARules, text = "Read Color", font = fontNormal).grid(row = 0, column = 0)
+		tk.Label(self.frameLARules, text = "Rotation", font = fontNormal).grid(row = 0, column = 1)
+		tk.Label(self.frameLARules, text = "Write Color", font = fontNormal).grid(row = 0, column = 2)
 
 		self.fields = {}
 		for i in range(0, self.varNumColors.get()):
@@ -99,7 +99,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
 				master, self.varNumColors, \
-				2, 3, 4, 5, 6, 7, 8 \
+				2, 3, 4, 5, 6, 7, 8, \
+				command = lambda n : self.refreshLAFields() \
 			)
 			self.buttonRefresh = tk.Button( \
 				master, text = "Refresh Fields", \
@@ -114,10 +115,16 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				master, text = "Rules", \
 				relief = "ridge", bd = 2, font = fontNormal \
 			)
-			self.optionsNumColors.grid(row = 0, column = 0)
-			self.buttonRefresh.grid(row = 0, column = 1)
+
+			tk.Label( \
+				master, text = "Number of Colors:", \
+				font = fontNormal \
+			).grid(row = 0, column = 0)
+			self.optionsNumColors.grid(row = 0, column = 1)
+			#self.buttonRefresh.grid(row = 0, column = 3)
 			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2)
-			self.frameLARules.grid(row = 2, column = 0, columnspan = 2)
+			self.frameLARules.grid(row = 1, column = 2, columnspan = 2)
+			self.refreshLAFields()
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
 	def apply(self):
@@ -129,8 +136,19 @@ def customizeRules():
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, option_var.get()).result
 		print(result)
-		if result is dict:
-			pass
+		if type(result) is dict:
+			savefile = fdg.asksaveasfilename( \
+				parent = base, \
+				title = "Select a file to save to:", \
+				initialdir = id, \
+				filetypes = ( \
+					("Custom Automaton Rules", "*.json"), \
+					("All Files", "*.*") \
+				) \
+			)
+			if type(savefile) is str and len(savefile) > 0:
+				print(savefile)
+				mbx.showinfo("Success!", "Your file was saved successfully.")
 	return None
 
 base = tk.Tk()
