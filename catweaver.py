@@ -32,20 +32,18 @@ ctx.pack()
 # image - cells that do so die.
 autList = [automata.ElementaryAutomaton(802, 30, 800),
 		   automata.ElementaryAutomaton(802, 110, 800)]
-autCurrent = autList[0]
 
-def change_automaton(*args):
-	try:
-		autCurrent = autList[autList.index(optionVar.get())]
-	except ValueError:
-		autCurrent = autList[0]
-
-	autCurrent.reset_board()
-
+# A dropdown menu to pick the automaton the user wants.
+autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
+optionVar = tk.StringVar(base)
+optionVar.set('Rule 30') #default rule
+autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
 
 def output_img():
 	grid = []
+	autCurrent = 0
 	try:
+		autCurrent = autList[autOptions.index(optionVar.get())]
 		if not (autCurrent.is_empty()):
 			filename = fdg.asksaveasfilename( \
 				parent = base, \
@@ -65,13 +63,6 @@ def output_img():
 		mbx.showinfo("Error", "Invalid filename - please make sure you entered it correctly.")
 
 	autCurrent.reset_board()
-
-# A dropdown menu to pick the automaton the user wants.
-autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
-optionVar = tk.StringVar(base)
-optionVar.set('Rule 30') #default rule
-optionVar.trace('w', change_automaton)
-autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
 
 tk.Label(settings, text="Select an automaton: ").grid(row = 0, column = 0, sticky=tk.W + tk.E)
 autMenu.grid(row = 0, column = 1, padx = 2, pady = 10, sticky=tk.W + tk.E)
