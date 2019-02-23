@@ -8,6 +8,7 @@ import platform as pt
 import time
 
 import utilities
+import automata
 
 if pt.system() == "Linux":
 	id = "~"
@@ -26,14 +27,54 @@ settings.grid(row = 0, column = 1, padx = 2, pady = 2)
 ctx = tk.Canvas(viewer, width=600, height=600)
 ctx.pack()
 
-#A dropdown menu to pick the automaton the user wants.
-aut_options = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
-option_var = tk.StringVar(base)
-option_var.set('Rule 30') #default rule
-aut_menu = tk.OptionMenu(settings, option_var, *aut_options)
+# A list of the automata that are loaded.
+# Note that the automaton doesn't continue past the left and right edges of the
+# image - cells that do so die.
+autList = [automata.ElementaryAutomaton(802, 30, 800),
+		   automata.ElementaryAutomaton(802, 110, 800)]
+autCurrent = autList[0]
+
+def change_automaton(*args):
+	try:
+		autCurrent = autList[autList.index(optionVar.get())]
+	except ValueError:
+		autCurrent = autList[0]
+
+	autCurrent.reset_board()
+
+
+def output_img():
+	grid = []
+	try:
+		if not (autCurrent.is_empty()):
+			filename = fdg.asksaveasfilename( \
+				parent = base, \
+				title = "Save image to:", \
+				initialdir = id, \
+				filetypes = (("Portable Network Graphic", "*.png"), ("Bitmap", "*.bmp"), ("All files", "*.*")) \
+				)
+
+			if type(filename) is str and len(filename) > 0:
+				grid = utilities.carve_array(autCurrent.generate_grid(), 1, 0, 800, 800)
+				utilities.render_img([(0, 0, 0), (255, 255, 255)], grid, filename)
+				mbx.showinfo("Success", "Image was rendered successfully at {0}".format(filename))
+
+		else:
+			mbx.showinfo("Error", "All cells in the starting configuration are empty.")
+	except ValueError:
+		mbx.showinfo("Error", "Invalid filename - please make sure you entered it correctly.")
+
+	autCurrent.reset_board()
+
+# A dropdown menu to pick the automaton the user wants.
+autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
+optionVar = tk.StringVar(base)
+optionVar.set('Rule 30') #default rule
+optionVar.trace('w', change_automaton)
+autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
 
 tk.Label(settings, text="Select an automaton: ").grid(row = 0, column = 0, sticky=tk.W + tk.E)
-aut_menu.grid(row = 0, column = 1, padx = 2, pady = 10, sticky=tk.W + tk.E)
+autMenu.grid(row = 0, column = 1, padx = 2, pady = 10, sticky=tk.W + tk.E)
 
 startingCellsButton = tk.Button(settings, text="Set starting conditions")
 startingCellsButton.grid(row = 1, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
@@ -41,9 +82,7 @@ startingCellsButton.grid(row = 1, column = 0, columnspan = 2, pady = 5, sticky=t
 previewImageButton = tk.Button(settings, text="Preview image")
 previewImageButton.grid(row = 2, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 
-saveBMPButton = tk.Button(settings, text="Save .BMP")
-saveBMPButton.grid(row = 3, column = 0, pady = 5, sticky=tk.W + tk.E)
-savePNGButton = tk.Button(settings, text="Save .PNG")
-savePNGButton.grid(row = 3, column = 1, pady = 5, sticky=tk.W + tk.E)
+saveBMPButton = tk.Button(settings, text="Save image", command=output_img)
+saveBMPButton.grid(row = 3, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 
 base.mainloop()
