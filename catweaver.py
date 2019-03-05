@@ -6,6 +6,7 @@ import tkinter.filedialog as fdg
 import random as rnd
 import platform as pt
 import time
+import json
 
 # For the utilities.py file
 import utilities
@@ -128,7 +129,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
 	def apply(self):
-		self.result = self.fields
+		if hasattr(self, "fields"):
+			self.result = self.fields
 
 # Rule customization function
 def customizeRules():
@@ -148,6 +150,12 @@ def customizeRules():
 			)
 			if type(savefile) is str and len(savefile) > 0:
 				print(savefile)
+				for n in result.keys():
+					for k in result[n].keys():
+						if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
+							result[n][k] = result[n][k].get()
+				print(result)
+				print(json.dumps(result))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 	return None
 
