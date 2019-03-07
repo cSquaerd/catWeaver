@@ -10,6 +10,9 @@ import time
 import utilities
 import automata
 
+DEAD_EDGE = 0
+WRAP_GRID = 1
+
 if pt.system() == "Linux":
 	id = "~"
 elif pt.system() == "Windows":
@@ -30,8 +33,8 @@ ctx.pack()
 # A list of the automata that are loaded.
 # Note that the automaton doesn't continue past the left and right edges of the
 # image - cells that do so die.
-autList = [automata.ElementaryAutomaton(802, 30, 800),
-		   automata.ElementaryAutomaton(802, 110, 800)]
+autList = [automata.ElementaryAutomaton(800, 30, 800, edgeRule=WRAP_GRID),
+		   automata.ElementaryAutomaton(800, 110, 800, edgeRule=WRAP_GRID)]
 
 # A dropdown menu to pick the automaton the user wants.
 autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
@@ -44,6 +47,7 @@ def output_img():
 	autCurrent = 0
 	try:
 		autCurrent = autList[autOptions.index(optionVar.get())]
+		autCurrent.reset_board()
 		if not (autCurrent.is_empty()):
 			filename = fdg.asksaveasfilename( \
 				parent = base, \
@@ -53,7 +57,7 @@ def output_img():
 				)
 
 			if type(filename) is str and len(filename) > 0:
-				grid = utilities.carve_array(autCurrent.generate_grid(), 1, 0, 800, 800)
+				grid = autCurrent.generate_grid()
 				utilities.render_img([(0, 0, 0), (255, 255, 255)], grid, filename)
 				mbx.showinfo("Success", "Image was rendered successfully at {0}".format(filename))
 
