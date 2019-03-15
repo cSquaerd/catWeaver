@@ -169,7 +169,7 @@ def customizeRules():
 	choice = dialogRootCustomizeRules(base, option_var.get()).result
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, option_var.get()).result
-		print(result)
+		#print(result)
 		if type(result) is dict:
 			savefile = fdg.asksaveasfilename( \
 				parent = base, \
@@ -181,7 +181,7 @@ def customizeRules():
 				) \
 			)
 			if type(savefile) is str and len(savefile) > 0:
-				print(savefile)
+				#print(savefile)
 				if option_var.get() in ("Rule 30", "Rule 110"):
 					for n in result.keys():
 						result[n] = result[n].get()
@@ -190,8 +190,14 @@ def customizeRules():
 						for k in result[n].keys():
 							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
 								result[n][k] = result[n][k].get()
-				print("Main result:", result)
-				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
+
+				result[-1] = option_var.get()
+				#print(result)
+				f = open(savefile, "w")
+				f.write(json.dumps(result, sort_keys = True, indent = 2))
+				f.close()
+				#print("Main result:", result)
+				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 	return None
 
