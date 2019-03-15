@@ -19,6 +19,7 @@ elif pt.system() == "Windows":
 stringCreateRules = "Create Rules (with dialog)"
 stringLoadRules = "Load Rules (from .json)"
 stringModifyRules = "Modify Rules (from .json)"
+tupleRuleNs = ("Rule 30", "Rule 110")
 
 # Rule customization root dialog window
 class dialogRootCustomizeRules(sdg.Dialog):
@@ -26,21 +27,28 @@ class dialogRootCustomizeRules(sdg.Dialog):
 		self.automaton = atmt
 		super().__init__(master)
 	def body(self, master):
-		if self.automaton in ("Rule 30", "Rule 110"):
-			self.automaton = "Rule N"
 		self.title("Customize Rules")
 		self.resizable(False, False)
-		self.varCustomizeChoice = tk.StringVar(self, stringCreateRules)
-		tk.Label(self, text = "Current Automaton:", font = fontNormal).pack()
-		tk.Label(self, text = self.automaton, font = fontNormal).pack()
-		self.optionsCustomize = tk.OptionMenu( \
-			self, \
-			self.varCustomizeChoice, \
-			stringCreateRules, \
-			stringLoadRules, \
-			stringModifyRules \
-		)
-		self.optionsCustomize.pack()
+
+		if self.automaton in ("Toothpick Sequence", "Seeds"):
+			tk.Label(self, text = "Your selected automaton does not support customization.", font = fontNormal).pack()
+			self.varCustomizeChoice = tk.StringVar(self, "")
+
+		else:
+			if self.automaton in tupleRuleNs:
+				self.automaton = "Rule N"
+			self.varCustomizeChoice = tk.StringVar(self, stringCreateRules)
+			tk.Label(self, text = "Current Automaton:", font = fontNormal).pack()
+			tk.Label(self, text = self.automaton, font = fontNormal).pack()
+			self.optionsCustomize = tk.OptionMenu( \
+				self, \
+				self.varCustomizeChoice, \
+				stringCreateRules, \
+				stringLoadRules, \
+				stringModifyRules \
+			)
+			self.optionsCustomize.pack()
+
 	def apply(self):
 		self.result = self.varCustomizeChoice.get()
 
@@ -96,13 +104,19 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.fields[i] = localField
 
 	def body(self, master):
-		if self.automaton in ("Rule 30", "Rule 110"):
+		if self.automaton in tupleRuleNs:
 			self.automaton = "Rule N"
 		self.title("Customize " + self.automaton + " Rules")
 		self.resizable(False, False)
 		if self.automaton == "Rule N":
+			tk.Label( \
+				master, \
+				text = "Each binary string corresponds to a pattern of cells. The value you set for each pattern is the value the center cell of the pattern will become in the next generation.", \
+				justify = tk.LEFT, wraplength = 400, font = fontNormal \
+			).grid(row = 0, column = 0, columnspan = 8)
 			self.ruleNLabels = ("111", "110", "101", "100", "011", "010", "001", "000")
 			self.fields = {}
+
 			for n in range(8):
 				self.tempLF = tk.LabelFrame( \
 					master, text = self.ruleNLabels[n], font = fontNormal \
@@ -112,7 +126,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 					self.tempLF, self.fields[7 - n], \
 					False, True \
 				).pack()
-				self.tempLF.grid(row = 0, column = n, padx = 2)
+				self.tempLF.grid(row = 1, column = n, padx = 2)
+
 		elif self.automaton == "Langton\'s Ant":
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
