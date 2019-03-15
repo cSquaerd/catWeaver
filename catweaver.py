@@ -26,6 +26,8 @@ class dialogRootCustomizeRules(sdg.Dialog):
 		self.automaton = atmt
 		super().__init__(master)
 	def body(self, master):
+		if self.automaton in ("Rule 30", "Rule 110"):
+			self.automaton = "Rule N"
 		self.title("Customize Rules")
 		self.resizable(False, False)
 		self.varCustomizeChoice = tk.StringVar(self, stringCreateRules)
@@ -94,9 +96,24 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.fields[i] = localField
 
 	def body(self, master):
+		if self.automaton in ("Rule 30", "Rule 110"):
+			self.automaton = "Rule N"
 		self.title("Customize " + self.automaton + " Rules")
 		self.resizable(False, False)
-		if self.automaton == "Langton\'s Ant":
+		if self.automaton == "Rule N":
+			self.ruleNLabels = ("111", "110", "101", "100", "011", "010", "001", "000")
+			self.fields = {}
+			for n in range(8):
+				self.tempLF = tk.LabelFrame( \
+					master, text = self.ruleNLabels[n], font = fontNormal \
+				)
+				self.fields[7 - n] = tk.BooleanVar(self, False)
+				tk.OptionMenu( \
+					self.tempLF, self.fields[7 - n], \
+					False, True \
+				).pack()
+				self.tempLF.grid(row = 0, column = n, padx = 2)
+		elif self.automaton == "Langton\'s Ant":
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
 				master, self.varNumColors, \
@@ -123,8 +140,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			).grid(row = 0, column = 0)
 			self.optionsNumColors.grid(row = 0, column = 1)
 			#self.buttonRefresh.grid(row = 0, column = 3)
-			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2)
-			self.frameLARules.grid(row = 1, column = 2, columnspan = 2)
+			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2, padx = 2)
+			self.frameLARules.grid(row = 1, column = 2, columnspan = 2, padx = 2)
 			self.refreshLAFields()
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
@@ -150,12 +167,16 @@ def customizeRules():
 			)
 			if type(savefile) is str and len(savefile) > 0:
 				print(savefile)
-				for n in result.keys():
-					for k in result[n].keys():
-						if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
-							result[n][k] = result[n][k].get()
-				print(result)
-				print(json.dumps(result))
+				if option_var.get() in ("Rule 30", "Rule 110"):
+					for n in result.keys():
+						result[n] = result[n].get()
+				elif option_var.get() == "Langton\'s Ant":
+					for n in result.keys():
+						for k in result[n].keys():
+							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
+								result[n][k] = result[n][k].get()
+				print("Main result:", result)
+				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 	return None
 
