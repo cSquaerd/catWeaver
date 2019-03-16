@@ -20,6 +20,10 @@ stringCreateRules = "Create Rules (with dialog)"
 stringLoadRules = "Load Rules (from .json)"
 stringModifyRules = "Modify Rules (from .json)"
 tupleRuleNs = ("Rule 30", "Rule 110")
+tupleFileTypes = ( \
+	("Custom Automaton Rules", "*.json"), \
+	("All Files", "*.*") \
+)
 
 # Rule customization root dialog window
 class dialogRootCustomizeRules(sdg.Dialog):
@@ -175,10 +179,7 @@ def customizeRules():
 				parent = base, \
 				title = "Select a file to save to:", \
 				initialdir = id, \
-				filetypes = ( \
-					("Custom Automaton Rules", "*.json"), \
-					("All Files", "*.*") \
-				) \
+				filetypes = tupleFileTypes \
 			)
 			if type(savefile) is str and len(savefile) > 0:
 				#print(savefile)
@@ -199,6 +200,37 @@ def customizeRules():
 				#print("Main result:", result)
 				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
+	elif choice == stringLoadRules:
+		loadfile = fdg.askopenfilename( \
+			parent = base, \
+			title = "Select a file to load from:", \
+			initialdir = id, \
+			filetypes = tupleFileTypes \
+		)
+		if type(loadfile) is str and len(loadfile) > 0:
+			try:
+				f = open(loadfile, "r")
+				loaded = json.loads(f.read())
+				originalKeys = list(loaded.keys())
+				#print(originalKeys)
+				#print(type(loaded))
+				#print(loaded)
+				for s in originalKeys:
+					loaded[int(s)] = loaded[s]
+					del loaded[s]
+				#print("For-Loop Complete!")
+				#print(type(loaded))
+				#print(loaded)
+			except:
+				pass
+			if loaded[-1] != option_var.get():
+				if mbx.askyesno( \
+					"Different Automaton Detected", \
+					"This file contains rules for the automaton: \"" \
+						+ loaded[-1] \
+						+ "\". Do you wish to continue loading and switch to the automaton in the file?" \
+					):
+					option_var.set(loaded[-1])
 	return None
 
 base = tk.Tk()
