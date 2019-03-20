@@ -41,3 +41,12 @@ a = [[0, 0, 1, 0, 0],
 
 render_img(cols, a, "path/to/file/location.png")
 '''
+# Pretty self-explanatory - converts color hex string (#RRGGBB)
+# to an RGB tuple (0xRR, 0xGG, 0xBB).
+def hex_string_to_RGB(self, hexString):
+    rStr = "0x" + hexString[1:3]
+    gStr = "0x" + hexString[3:5]
+    bStr = "0x" + hexString[5:]
+
+    rgb = (int(rStr, 0), int(gStr, 0), int(bStr, 0))
+    return rgb

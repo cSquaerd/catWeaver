@@ -2,17 +2,27 @@
 
 import copy
 import math
+import random
 
 # Settings for the edges of the grid...
-DEAD_EDGE = 0   # All cells on the edges of the grid die.
+DEAD_EDGE = 0   # All cells outside the edges of the grid die.
 WRAP_GRID = 1   # Attempting to write to cells outside the grid will write
                 # to the opposite side of the grid.
+
+# Settings for the default grid state. This will be implemented later...
+CENTER_PIXEL = 0        # The pixel in the center is on by default.
+FULLY_RANDOM = 1        # Every cell starts at a random state.
+RANDOM_CENTER_5X5 = 2   # The cells in a 5x5 grid in the center start at random states.
 
 '''
 This is the general layout of an automaton class.
 I'll explain each one of these functions in great detail...
 '''
 class Automaton:
+    # Returns a string with the automaton type.
+    def get_aut_type(self):
+        pass
+
     # Empties the board, and has a boolean for a default state - if it's
     # true, the states will reset to a default, and if false, they will
     # remain empty.
@@ -25,7 +35,7 @@ class Automaton:
 
     # Changes the size of the board. Currently the render size also accounts
     # for the dead edges on the sides of the board - I'm planning on
-    # implementing edge options (dead edge, grid wrap, or extended grid).
+    # implementing edge options (dead edge or grid wrap).
     def resize(self):
         pass
 
@@ -70,6 +80,10 @@ class ElementaryAutomaton(Automaton):
         self.edgeRule = edgeRule
         if (isDefaultStart):
             self.cells[self.size // 2] = 1
+
+
+    def get_aut_type(self):
+        return "Elementary Automaton"
 
 
     def reset_board(self, isDefaultStart = True):
@@ -163,14 +177,11 @@ Examples:
     - Day & Night: B3678/S34678
         - Symmetric automaton with very complex behavior.
 '''
-
-'''
-IN DEVELOPMENT
 class LifelikeAutomaton:
-    def __init(self, rows, columns, rule, iterations, edgeRule = DEAD_EDGE, isDefaultStart = True):
+    def __init__(self, rows, columns, rule, iterations, edgeRule = DEAD_EDGE, isDefaultStart = True):
         self.rows = rows
         self.cols = columns
-        self.cells = [[0 for col in columns] for row in rows]
+        self.cells = [[0 for col in range(columns)] for row in range(rows)]
         # note: each cell is at self.cells[row][col]
         self.ruleString = rule
         self.iterations = iterations
@@ -179,7 +190,7 @@ class LifelikeAutomaton:
         self.aliveCount = []
 
         centerRow = rows // 2
-        centerCol = cols // 2
+        centerCol = columns // 2
         if (isDefaultStart):
             self.cells[centerRow][centerCol] = 1
             self.cells[centerRow][centerCol - 1] = 1
@@ -192,44 +203,105 @@ class LifelikeAutomaton:
         ruleSplit[1] = ruleSplit[1][1:]
 
         for i in ruleSplit[0]:
-            bornCount.append(int(i))
+            self.bornCount.append(int(i))
         for i in ruleSplit[1]:
-            aliveCount.append(int(i))
+            self.aliveCount.append(int(i))
 
 
-    def reset_board(self):
-        pass
+    def reset_board(self, isDefaultStart=True):
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[0])):
+                self.cells[i][j] = 0
 
-    # Returns a boolean stating whether or not all the cells are dead.
+        centerRow = self.rows // 2
+        centerCol = self.cols // 2
+        if (isDefaultStart):
+            for row in range(centerRow - 2, centerRow + 3):
+                for col in range(centerCol - 2, centerCol + 3):
+                    self.cells[row][col] = random.randint(0, 1)
+
+
     def is_empty(self):
-        pass
+        isEmpty = True
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[0])):
+                if (self.cells[i][j] == 1):
+                    isEmpty = False
 
-    # Changes the size of the board. Currently the render size also accounts
-    # for the dead edges on the sides of the board - I'm planning on
-    # implementing edge options (dead edge, grid wrap, or extended grid).
-    def resize(self):
-        pass
 
-    # The number of iterations performed. For a 1D automaton the iteration
-    # count should equal the vertical size of the image in pixels.
-    def set_iteration_count(self):
-        pass
+        return isEmpty
+
+
+    def resize(self, rows, cols):
+        self.rows = rows
+        self.cols = cols
+        self.cells = [[0 for i in range(rows)] for i in range(cols)]
+        self.reset_board()
+
+
+    def set_iteration_count(self, iterCount):
+        self.iterations = iterCount
+        self.reset_board()
 
     # Changes the state of the cell at the desired index.
-    def set_cell_state(self):
-        pass
+    def set_cell_state(self, row, col, state):
+        self.cells[row][col] = state
 
     # Checks the state of the cell according to the edge-detection rule.
-    def access_cell(self):
-        pass
+    def access_cell(self, cellList, row, col):
+        cellState = 0
+        if (row >= 0 and row < self.rows):
+            if (col >= 0 and col < self.cols):
+                cell_state = cellList[row][col]
+            else:
+                if (self.edgeRule == WRAP_GRID):
+                    if (col < 0):
+                        cell_state = self.access_cell(cellList, row, col + self.cols)
+                    elif (col >= self.cols):
+                        cell_state = self.access_cell(cellList, row, col - self.cols)
+
+
+        else:
+            if (self.edgeRule == WRAP_GRID):
+                if (row < 0):
+                    cell_state = self.access_cell(cellList, row + self.rows, col)
+                else:
+                    cell_state = self.access_cell(cellList, row - self.rows, col)
+
+        return cell_state
 
     # Runs the automaton through one iteration. In a 1D automaton this adds
     # a new row to the grid, whereas in a 2D automaton it just runs as normal.
     def iterate(self):
-        pass
+        prevCells = copy.deepcopy(self.cells)
+        stateNumber = 0
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.cells[row][col] = 0
+                stateNumber = \
+                    self.access_cell(prevCells, row-1, col-1) + \
+                    self.access_cell(prevCells, row-1, col) + \
+                    self.access_cell(prevCells, row-1, col+1) + \
+                    self.access_cell(prevCells, row, col-1) + \
+                    self.access_cell(prevCells, row, col+1) + \
+                    self.access_cell(prevCells, row+1, col-1) + \
+                    self.access_cell(prevCells, row+1, col) + \
+                    self.access_cell(prevCells, row+1, col+1)
+
+                if prevCells[row][col] == 0:
+                    if stateNumber in self.bornCount:
+                        self.cells[row][col] = 1
+
+                elif prevCells[row][col] == 1:
+                    if not stateNumber in self.aliveCount:
+                        self.cells[row][col] = 0
 
     # Runs an automaton through the number of iterations specified and returns
     # the array of grid states.
     def generate_grid(self):
-        pass
-'''
+        stateGrid = []
+        for i in range(self.iterations-1):
+            self.iterate()
+
+        stateGrid = copy.copy(self.cells)
+        return stateGrid

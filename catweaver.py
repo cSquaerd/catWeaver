@@ -6,6 +6,7 @@ import tkinter.filedialog as fdg
 import random as rnd
 import platform as pt
 import time
+import copy
 
 import utilities
 import automata
@@ -31,16 +32,85 @@ ctx = tk.Canvas(viewer, width=600, height=600)
 ctx.pack()
 
 # A list of the automata that are loaded.
-# Note that the automaton doesn't continue past the left and right edges of the
-# image - cells that do so die.
-autList = [automata.ElementaryAutomaton(800, 30, 800, edgeRule=WRAP_GRID),
-		   automata.ElementaryAutomaton(800, 110, 800, edgeRule=WRAP_GRID)]
+autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=WRAP_GRID),
+		   automata.ElementaryAutomaton(400, 110, 400, edgeRule=WRAP_GRID),
+		   None,
+		   None,
+		   automata.LifelikeAutomaton(400, 400, "B2/S", 100, edgeRule=WRAP_GRID)]
 
 # A dropdown menu to pick the automaton the user wants.
 autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
 optionVar = tk.StringVar(base)
 optionVar.set('Rule 30') #default rule
 autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
+
+# A proxy class that does a number of things: store data pertinent to an
+# automaton in immediate memory, convert between JSON data and automaton-
+# specific rule strings, and alter configuration data.
+# --- UNDER CONSTRUCTION ---
+class AutomatonProxy:
+	def __init__(self, colors=[(255, 255, 255), (0, 0, 0)]):
+		self.aut = copy.deepcopy(autList[autOptions.index(optionVar.get())])
+		self.autType = self.aut.get_aut_type()
+		self.initCellStates = self.aut.cells
+		self.colors = []
+		self.width = 800
+		self.height = 800
+
+	# Sets the possible colors for the automaton. Note that colors[i] will
+	# mark the color of the state of cells[i] in the automaton.
+	def set_colors(self, colors):
+		self.colors = colors
+
+	# To know how a rule string might be constructed from the JSON data,
+	# first we need to set the automaton type appropriately.
+	def set_automaton(self, type):
+		pass
+
+	def set_dimensions(self, width, height):
+		self.width = width
+		self.height = height
+		self.aut.resize(width, height)
+
+
+	def set_dimensions(self, width):
+		pass
+
+	# Resets all values in the proxy to the default configuration for
+	# each type of automaton.
+	def reset_proxy(self):
+		pass
+
+	# Converts rules from JSON format to an automaton rule string and
+	# loads the rules into the automaton object.
+	def load_rule_string(self, jsonDictionary):
+		pass
+
+	# Sets the initial cell states based on an inputted array.
+	def set_board_state(self):
+		pass
+
+	# Uses the current information to construct an image.
+	def output_img(self):
+		pass
+
+
+class DialogSetInitial(sdg.Dialog):
+	def __init__(self, master, aut):
+		self.automaton = aut
+		self.result = None
+		super.__init__(master)
+
+	def body(self, master):
+		self.title("Set Initial Conditions")
+		self.resizable(False, False)
+
+		if self.automaton in ("Rule 30", "Rule 110"):
+			tk.Button(self, text="Default").pack()
+			tk.Button(self, text="Random").pack()
+
+
+aut_proxy = AutomatonProxy()
 
 def output_img():
 	grid = []
@@ -68,10 +138,15 @@ def output_img():
 
 	autCurrent.reset_board()
 
+
+def set_init():
+	pass
+
+
 tk.Label(settings, text="Select an automaton: ").grid(row = 0, column = 0, sticky=tk.W + tk.E)
 autMenu.grid(row = 0, column = 1, padx = 2, pady = 10, sticky=tk.W + tk.E)
 
-startingCellsButton = tk.Button(settings, text="Set starting conditions")
+startingCellsButton = tk.Button(settings, text="Set starting conditions", command=set_init)
 startingCellsButton.grid(row = 1, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 
 previewImageButton = tk.Button(settings, text="Preview image")
