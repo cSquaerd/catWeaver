@@ -88,6 +88,8 @@ class ElementaryAutomaton(Automaton):
 
         else:
             print("Start configuration not valid. Defaulting to CENTER_PIXEL.")
+            self.cells[self.size // 2] = 1
+
 
     def get_aut_type(self):
         return "Elementary Automaton"
@@ -216,6 +218,12 @@ class LifelikeAutomaton:
                     self.cells[row][col] = random.randint(0, 1)
 
 
+        else:
+            print("Start configuration not valid. Defaulting to RANDOM_CENTER_5X5...")
+            for row in range(centerRow - 2, centerRow + 3):
+                for col in range(centerCol - 2, centerCol + 3):
+                    self.cells[row][col] = random.randint(0, 1)
+
 
         ruleSplit = rule.split("/")
         ruleSplit[0] = ruleSplit[0][1:]
@@ -230,14 +238,23 @@ class LifelikeAutomaton:
         return "Lifelike Automaton"
 
 
-    def reset_board(self, isDefaultStart=True):
+    def reset_board(self, startConfig = RANDOM_CENTER_5X5):
         for i in range(len(self.cells)):
             for j in range(len(self.cells[0])):
                 self.cells[i][j] = 0
 
         centerRow = self.rows // 2
         centerCol = self.cols // 2
-        if (isDefaultStart):
+        if startConfig == CENTER_PIXEL:
+            self.cells[centerRow][centerCol] = 1
+
+        elif startConfig == FULLY_RANDOM:
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    self.cells[row][col] = random.randint(0, 1)
+
+
+        elif startConfig == RANDOM_CENTER_5X5:
             for row in range(centerRow - 2, centerRow + 3):
                 for col in range(centerCol - 2, centerCol + 3):
                     self.cells[row][col] = random.randint(0, 1)
@@ -299,7 +316,6 @@ class LifelikeAutomaton:
         stateNumber = 0
         for row in range(self.rows):
             for col in range(self.cols):
-                self.cells[row][col] = 0
                 stateNumber = \
                     self.access_cell(prevCells, row-1, col-1) + \
                     self.access_cell(prevCells, row-1, col) + \
@@ -313,9 +329,13 @@ class LifelikeAutomaton:
                 if prevCells[row][col] == 0:
                     if stateNumber in self.bornCount:
                         self.cells[row][col] = 1
+                    else:
+                        self.cells[row][col] = 0
 
                 elif prevCells[row][col] == 1:
-                    if not stateNumber in self.aliveCount:
+                    if stateNumber in self.aliveCount:
+                        self.cells[row][col] = 1
+                    else:
                         self.cells[row][col] = 0
 
     # Runs an automaton through the number of iterations specified and returns
