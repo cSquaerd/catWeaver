@@ -10,9 +10,9 @@ WRAP_GRID = 1   # Attempting to write to cells outside the grid will write
                 # to the opposite side of the grid.
 
 # Settings for the default grid state. This will be implemented later...
-CENTER_PIXEL = 0        # The pixel in the center is on by default.
-FULLY_RANDOM = 1        # Every cell starts at a random state.
-RANDOM_CENTER_5X5 = 2   # The cells in a 5x5 grid in the center start at random states.
+CENTER_PIXEL      = 0        # The pixel in the center is on by default.
+FULLY_RANDOM      = 1        # Every cell starts at a random state.
+RANDOM_CENTER_5X5 = 2        # The cells in a 5x5 grid in the center start at random states. Not valid in 1D automata.
 
 '''
 This is the general layout of an automaton class.
@@ -72,26 +72,36 @@ Rule definition: An 8-bit number, with each bit corresponding to a
 configuration of different cell states.
 '''
 class ElementaryAutomaton(Automaton):
-    def __init__(self, size, rule, iterations, edgeRule = DEAD_EDGE, isDefaultStart = True):
+    def __init__(self, size, rule, iterations, edgeRule = DEAD_EDGE, \
+                 startConfig = CENTER_PIXEL):
         self.cells = [0 for i in range(size)]
         self.size = size
         self.ruleString = format(rule, '#010b')[2:]
         self.iterations = iterations
         self.edgeRule = edgeRule
-        if (isDefaultStart):
-            self.cells[self.size // 2] = 1
 
+        if (startConfig == CENTER_PIXEL):
+            self.cells[self.size // 2] = 1
+        elif (startConfig == FULLY_RANDOM):
+            for i in range(size):
+                self.cells[i] = random.randint(0, 1)
+
+        else:
+            print("Start configuration not valid. Defaulting to CENTER_PIXEL.")
 
     def get_aut_type(self):
         return "Elementary Automaton"
 
 
-    def reset_board(self, isDefaultStart = True):
+    def reset_board(self, startConfig = CENTER_PIXEL):
         for i in range(self.size):
             self.cells[i] = 0
 
-        if (isDefaultStart):
+        if (startConfig == CENTER_PIXEL):
             self.cells[self.size // 2] = 1
+        elif (startConfig == FULLY_RANDOM):
+            for i in range(size):
+                self.cells[i] = random.randint(0, 1)
 
 
     def is_empty(self):
@@ -178,7 +188,8 @@ Examples:
         - Symmetric automaton with very complex behavior.
 '''
 class LifelikeAutomaton:
-    def __init__(self, rows, columns, rule, iterations, edgeRule = DEAD_EDGE, isDefaultStart = True):
+    def __init__(self, rows, columns, rule, iterations, edgeRule = DEAD_EDGE, \
+                 startConfig = RANDOM_CENTER_5X5):
         self.rows = rows
         self.cols = columns
         self.cells = [[0 for col in range(columns)] for row in range(rows)]
@@ -191,12 +202,20 @@ class LifelikeAutomaton:
 
         centerRow = rows // 2
         centerCol = columns // 2
-        if (isDefaultStart):
+        if (startConfig == CENTER_PIXEL):
             self.cells[centerRow][centerCol] = 1
-            self.cells[centerRow][centerCol - 1] = 1
-            self.cells[centerRow + 1][centerCol - 1] = 1
-            self.cells[centerRow - 1][centerCol] = 1
-            self.cells[centerRow][centerCol + 1] = 1
+        elif (startConfig == FULLY_RANDOM):
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    self.cells[row][col] = random.randint(0, 1)
+
+
+        elif (startConfig == RANDOM_CENTER_5X5):
+            for row in range(centerRow - 2, centerRow + 3):
+                for col in range(centerCol - 2, centerCol + 3):
+                    self.cells[row][col] = random.randint(0, 1)
+
+
 
         ruleSplit = rule.split("/")
         ruleSplit[0] = ruleSplit[0][1:]
@@ -206,6 +225,9 @@ class LifelikeAutomaton:
             self.bornCount.append(int(i))
         for i in ruleSplit[1]:
             self.aliveCount.append(int(i))
+
+    def get_aut_type():
+        return "Lifelike Automaton"
 
 
     def reset_board(self, isDefaultStart=True):

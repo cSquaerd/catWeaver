@@ -11,9 +11,6 @@ import copy
 import utilities
 import automata
 
-DEAD_EDGE = 0
-WRAP_GRID = 1
-
 if pt.system() == "Linux":
 	id = "~"
 elif pt.system() == "Windows":
@@ -32,11 +29,13 @@ ctx = tk.Canvas(viewer, width=600, height=600)
 ctx.pack()
 
 # A list of the automata that are loaded.
-autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=WRAP_GRID),
-		   automata.ElementaryAutomaton(400, 110, 400, edgeRule=WRAP_GRID),
+autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=automata.WRAP_GRID),
+		   automata.ElementaryAutomaton(400, 110, 400, edgeRule=automata.WRAP_GRID),
 		   None,
 		   None,
-		   automata.LifelikeAutomaton(400, 400, "B2/S", 100, edgeRule=WRAP_GRID)]
+		   automata.LifelikeAutomaton(400, 400, "B2/S", 100, \
+		   							  edgeRule=automata.WRAP_GRID, \
+									  startConfig=automata.RANDOM_CENTER_5X5)]
 
 # A dropdown menu to pick the automaton the user wants.
 autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
