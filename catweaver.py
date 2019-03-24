@@ -374,10 +374,10 @@ startingCellsButton.grid(row = 1, column = 0, columnspan = 2, pady = 5, sticky=t
 previewImageButton = tk.Button(settings, text="Preview image")
 previewImageButton.grid(row = 2, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 
-saveBMPButton = tk.Button(settings, text="Save image", command=output_img)
-saveBMPButton.grid(row = 3, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 btnCustomRules = tk.Button(settings, text = "Customize Automata Rules", command = customizeRules)
 btnCustomRules.grid(row = 3, column = 0, columnspan = 2, pady = 5, sticky = tk.W + tk.E)
+saveBMPButton = tk.Button(settings, text="Save image", command=output_img)
+saveBMPButton.grid(row = 4, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 # Sean, I didn't know about the sticky option to get the buttons to
 # Span the frame theyre in. A neat trick. - Charlie
 
