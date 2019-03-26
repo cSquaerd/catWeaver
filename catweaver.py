@@ -172,9 +172,9 @@ class dialogNewCustomizeRules(sdg.Dialog):
 
 # Rule customization function
 def customizeRules():
-	choice = dialogRootCustomizeRules(base, option_var.get()).result
+	choice = dialogRootCustomizeRules(base, optionVar.get()).result
 	if choice == stringCreateRules:
-		result = dialogNewCustomizeRules(base, option_var.get()).result
+		result = dialogNewCustomizeRules(base, optionVar.get()).result
 		#print(result)
 		if type(result) is dict:
 			savefile = fdg.asksaveasfilename( \
@@ -185,16 +185,16 @@ def customizeRules():
 			)
 			if type(savefile) is str and len(savefile) > 0:
 				#print(savefile)
-				if option_var.get() in ("Rule 30", "Rule 110"):
+				if optionVar.get() in ("Rule 30", "Rule 110"):
 					for n in result.keys():
 						result[n] = result[n].get()
-				elif option_var.get() == "Langton\'s Ant":
+				elif optionVar.get() == "Langton\'s Ant":
 					for n in result.keys():
 						for k in result[n].keys():
 							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
 								result[n][k] = result[n][k].get()
 
-				result[-1] = option_var.get()
+				result[-1] = optionVar.get()
 				#print(result)
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
@@ -225,14 +225,14 @@ def customizeRules():
 				#print(loaded)
 			except:
 				pass
-			if loaded[-1] != option_var.get():
+			if loaded[-1] != optionVar.get():
 				if mbx.askyesno( \
 					"Different Automaton Detected", \
 					"This file contains rules for the automaton: \"" \
 						+ loaded[-1] \
 						+ "\". Do you wish to continue loading and switch to the automaton in the file?" \
 					):
-					option_var.set(loaded[-1])
+					optionVar.set(loaded[-1])
 	return None
 
 base = tk.Tk()
