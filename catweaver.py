@@ -258,10 +258,12 @@ autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=automata.WRAP_GRI
 		   None,
 		   automata.LifelikeAutomaton(400, 400, "B2/S", 100, \
 		   							  edgeRule=automata.WRAP_GRID, \
-									  startConfig=automata.RANDOM_CENTER_5X5)]
+									  startConfig=automata.RANDOM_CENTER_5X5),
+		   automata.HodgepodgeMachine(400, 400, 200, 200, 3, 3, 28, edgeRule=automata.WRAP_GRID)]
 
 # A dropdown menu to pick the automaton the user wants.
-autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds' ]
+autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'Seeds', \
+ 			   'Hodgepodge Machine' ]
 optionVar = tk.StringVar(base)
 optionVar.set('Rule 30') #default rule
 autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
@@ -336,6 +338,7 @@ aut_proxy = AutomatonProxy()
 
 def output_img():
 	grid = []
+	colors = []
 	autCurrent = 0
 	try:
 		autCurrent = autList[autOptions.index(optionVar.get())]
@@ -350,7 +353,12 @@ def output_img():
 
 			if type(filename) is str and len(filename) > 0:
 				grid = autCurrent.generate_grid()
-				utilities.render_img([(0, 0, 0), (255, 255, 255)], grid, filename)
+				if (autCurrent.get_aut_type() == "Hodgepodge Machine"):
+					colors = utilities.linear_gradient((255, 0, 0), (0, 0, 0), 201)
+					utilities.render_img(colors, grid, filename)
+				else:
+					utilities.render_img([(0, 0, 0), (255, 255, 255)], grid, filename)
+
 				mbx.showinfo("Success", "Image was rendered successfully at {0}".format(filename))
 
 		else:

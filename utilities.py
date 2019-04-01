@@ -1,6 +1,8 @@
 # make sure you have Pillow installed - if not, install it with pip.
 from PIL import Image
 
+import math
+
 # this function "carves" part of a 2D array that we want.
 def carve_array(arr, start_col, start_row, row_length, col_length):
     newArray = [[0 for col in range(col_length)] for row in range(row_length)]
@@ -43,10 +45,38 @@ render_img(cols, a, "path/to/file/location.png")
 '''
 # Pretty self-explanatory - converts color hex string (#RRGGBB)
 # to an RGB tuple (0xRR, 0xGG, 0xBB).
-def hex_string_to_RGB(self, hexString):
+def hex_string_to_RGB(hexString):
     rStr = "0x" + hexString[1:3]
     gStr = "0x" + hexString[3:5]
     bStr = "0x" + hexString[5:]
 
     rgb = (int(rStr, 0), int(gStr, 0), int(bStr, 0))
     return rgb
+
+# Clamp a value so it never goes out of a range between two
+# numbers.
+def clamp(number, lowBound, highBound):
+    n = number
+    if n < lowBound:
+        n = lowBound
+    elif n > highBound:
+        n = highBound
+
+    return n
+
+# Get a list of color tuples comprising a linear gradient.
+def linear_gradient(color1, color2, amount):
+    rInc = (color2[0] - color1[0]) / float(amount)
+    gInc = (color2[1] - color1[1]) / float(amount)
+    bInc = (color2[2] - color1[2]) / float(amount)
+
+    index = 0
+
+    gradient = []
+    currentColor = list(color1)
+    while index < amount:
+        gradient.append((int(math.floor(currentColor[0])), int(math.floor(currentColor[1])), int(math.floor(currentColor[2]))))
+        currentColor = (currentColor[0] + rInc, currentColor[1] + gInc, currentColor[2] + bInc)
+        index += 1
+
+    return gradient

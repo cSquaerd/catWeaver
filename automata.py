@@ -4,6 +4,8 @@ import copy
 import math
 import random
 
+import utilities
+
 # Settings for the edges of the grid...
 DEAD_EDGE = 0   # All cells outside the edges of the grid die.
 WRAP_GRID = 1   # Attempting to write to cells outside the grid will write
@@ -234,6 +236,7 @@ class LifelikeAutomaton:
         for i in ruleSplit[1]:
             self.aliveCount.append(int(i))
 
+
     def get_aut_type():
         return "Lifelike Automaton"
 
@@ -282,22 +285,22 @@ class LifelikeAutomaton:
         self.iterations = iterCount
         self.reset_board()
 
-    # Changes the state of the cell at the desired index.
+
     def set_cell_state(self, row, col, state):
         self.cells[row][col] = state
 
-    # Checks the state of the cell according to the edge-detection rule.
+
     def access_cell(self, cellList, row, col):
         cellState = 0
         if (row >= 0 and row < self.rows):
             if (col >= 0 and col < self.cols):
-                cell_state = cellList[row][col]
+                cellState = cellList[row][col]
             else:
                 if (self.edgeRule == WRAP_GRID):
                     if (col < 0):
-                        cell_state = self.access_cell(cellList, row, col + self.cols)
+                        cellState = self.access_cell(cellList, row, col + self.cols)
                     elif (col >= self.cols):
-                        cell_state = self.access_cell(cellList, row, col - self.cols)
+                        cellState = self.access_cell(cellList, row, col - self.cols)
 
 
         else:
@@ -307,10 +310,9 @@ class LifelikeAutomaton:
                 else:
                     cell_state = self.access_cell(cellList, row - self.rows, col)
 
-        return cell_state
+        return cellState
 
-    # Runs the automaton through one iteration. In a 1D automaton this adds
-    # a new row to the grid, whereas in a 2D automaton it just runs as normal.
+
     def iterate(self):
         prevCells = copy.deepcopy(self.cells)
         stateNumber = 0
@@ -338,12 +340,212 @@ class LifelikeAutomaton:
                     else:
                         self.cells[row][col] = 0
 
-    # Runs an automaton through the number of iterations specified and returns
-    # the array of grid states.
+
     def generate_grid(self):
         stateGrid = []
         for i in range(self.iterations-1):
             self.iterate()
+
+        stateGrid = copy.copy(self.cells)
+        return stateGrid
+
+'''
+Below this divider is the automata that do not have rulestrings or aren't
+part of the default automata (elementary, toothpick, ant, or Life-like).
+These currently include:
+
+    - Hodgepodge Machine
+'''
+# -----------------------------------------------------------------------------
+'''
+HODGEPODGE MACHINE
+
+The idea behind this one is a bit more complex than the other ones. In essence,
+each cell can be in one of N+1 states, or any state between 0 and N. If a cell
+is in state 0, it is "healthy", and if it is in state N, it is "ill". If the
+cell is any state in between 0 and N, it is "infected". Additionally, for the
+automaton, we have two constants, k1, k2, and g - their use will make sense
+later.
+
+For each cell state, we do the following:
+    - If the cell is healthy, we say that A is the number of infected cells and
+      B is the number of ill cells within its neighborhood. The state of the
+      cell is then given by the formula (A / k1) + (B / k2).
+    - If a cell is infected, we say that S is the sum of the state numbers of
+      the cell's neighbors and itself, and that A is the number of infected or
+      ill cells in its neighborhood, not including itself. The cell's next state
+      is given by (S / (A + 1)) + g.
+    - If a cell is ill, it will miraculously become healthy.
+
+The reason this is interesting is because it can mimic the kind of oscillating
+chemical reactions that occur in a Petri dish. If you want to hear more about
+that, look up the Belousov-Zhabotinsky reaction.
+'''
+class HodgepodgeMachine(Automaton):
+    def __init__(self, rows, columns, stateCount, iterations, k1, k2, g, \
+                 edgeRule=DEAD_EDGE):
+        self.rows = rows
+        self.cols = columns
+        self.stateCount = stateCount
+        self.iterCount = iterations
+
+        self.k1 = k1
+        self.k2 = k2
+        self.g = g
+
+        self.edgeRule = edgeRule
+
+        self.cells = [[0 for col in range(self.cols)] for row in range(self.rows)]
+
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.cells[row][col] = random.randint(0, self.stateCount)
+
+
+    def get_aut_type(self):
+        return "Hodgepodge Machine"
+
+
+    def reset_board(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.cells[row][col] = random.randint(0, self.stateCount)
+
+
+    def resize(self, rows, cols):
+        self.rows = rows
+        self.cols = cols
+        self.reset_board()
+
+
+    def set_iteration_count(self, iterations):
+        self.iterCount = iterations
+
+
+    def set_cell_state(self, row, col, state):
+        self.cells[row][col] = state
+
+
+    def access_cell(self, cellList, row, col):
+        cellState = 0
+        if (row >= 0 and row < self.rows):
+            if (col >= 0 and col < self.cols):
+                cellState = cellList[row][col]
+            else:
+                if (self.edgeRule == WRAP_GRID):
+                    if (col < 0):
+                        cellState = self.access_cell(cellList, row, col + self.cols)
+                    elif (col >= self.cols):
+                        cellState = self.access_cell(cellList, row, col - self.cols)
+
+
+
+        else:
+            if (self.edgeRule == WRAP_GRID):
+                if (row < 0):
+                    cellState = self.access_cell(cellList, row + self.rows, col)
+                elif (row > self.rows):
+                    cellState = self.access_cell(cellList, row - self.rows, col)
+
+        return cellState
+
+
+    def _state(self, cellList, row, col):
+        stateString = ""
+        if self.access_cell(cellList, row, col) == 0:
+            stateString = "Healthy"
+        elif self.access_cell(cellList, row, col) >= self.stateCount - 1:
+            stateString = "Ill"
+        else:
+            stateString = "Infected"
+
+        return stateString
+
+
+    def iterate(self, iterNumber):
+        prevCells = copy.deepcopy(self.cells)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                stateNumber = 0
+                A = B = S = 0
+                state = ""
+                state = self._state(prevCells, row-1, col-1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row-1, col)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row-1, col+1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row, col-1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row, col+1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row+1, col-1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row+1, col)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                state = self._state(prevCells, row+1, col+1)
+                if state == "Infected":
+                    A += 1
+                elif state == "Ill":
+                    B += 1
+
+                if self._state(prevCells, row, col) == "Healthy":
+                    self.cells[row][col] = utilities.clamp(int(math.floor((A / float(self.k1)) + (B / float(self.k2)))), \
+                                                           0, self.stateCount)
+
+                elif self._state(prevCells, row, col) == "Ill":
+                    self.cells[row][col] = 0
+
+                else:
+                    S = self.access_cell(prevCells, row-1, col-1) + \
+                        self.access_cell(prevCells, row-1, col) + \
+                        self.access_cell(prevCells, row-1, col+1) + \
+                        self.access_cell(prevCells, row, col-1) + \
+                        self.access_cell(prevCells, row, col) + \
+                        self.access_cell(prevCells, row, col+1) + \
+                        self.access_cell(prevCells, row+1, col-1) + \
+                        self.access_cell(prevCells, row+1, col) + \
+                        self.access_cell(prevCells, row+1, col+1)
+
+                    self.cells[row][col] = utilities.clamp(int(math.floor(S / (A + B + 1) + self.g)), \
+                                                           0, self.stateCount)
+
+
+        print("Iteration #{0} completed.".format(iterNumber))
+
+
+    def generate_grid(self):
+        stateGrid = []
+        for i in range(self.iterCount - 1):
+            self.iterate(i + 1)
 
         stateGrid = copy.copy(self.cells)
         return stateGrid
