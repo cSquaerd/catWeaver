@@ -237,7 +237,7 @@ class LifelikeAutomaton:
             self.aliveCount.append(int(i))
 
 
-    def get_aut_type():
+    def get_aut_type(self):
         return "Lifelike Automaton"
 
 
