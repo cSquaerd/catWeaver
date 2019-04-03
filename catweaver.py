@@ -26,6 +26,7 @@ tupleFileTypes = ( \
 	("Custom Automaton Rules", "*.json"), \
 	("All Files", "*.*") \
 )
+dictCustomRules = {}
 
 # Rule customization root dialog window
 class dialogRootCustomizeRules(sdg.Dialog):
@@ -60,8 +61,9 @@ class dialogRootCustomizeRules(sdg.Dialog):
 
 # Rule customization "leaf" dialog window
 class dialogNewCustomizeRules(sdg.Dialog):
-	def __init__(self, master, atmt):
+	def __init__(self, master, atmt, r = None):
 		self.automaton = atmt
+		self.oldRules = r
 		super().__init__(master)
 	def refreshLAFields(self):
 		for w in self.frameLAColors.grid_slaves():
@@ -106,6 +108,9 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				self.frameLARules, localField["varWrite"], \
 				*tuple(range(0, self.varNumColors.get())) \
 			).grid(row = i + 1, column = 2)
+			if self.loadLA:
+				for k in localField.keys():
+					localField[k].set(self.oldRules[i][k])
 
 			self.fields[i] = localField
 
@@ -133,8 +138,11 @@ class dialogNewCustomizeRules(sdg.Dialog):
 					False, True \
 				).pack()
 				self.tempLF.grid(row = 1, column = n, padx = 2)
+				if type(self.oldRules) is not type(None):
+					self.fields[7 - n].set(self.oldRules[7 - n])
 
 		elif self.automaton == "Langton\'s Ant":
+			self.loadLA = False
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
 				master, self.varNumColors, \
@@ -154,6 +162,9 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				master, text = "Rules", \
 				relief = "ridge", bd = 2, font = fontNormal \
 			)
+			if type(self.oldRules) is not type(None):
+				self.varNumColors.set(max(self.oldRules.keys()) + 1)
+				self.loadLA = True
 
 			tk.Label( \
 				master, text = "Number of Colors:", \
@@ -172,10 +183,7 @@ class dialogNewCustomizeRules(sdg.Dialog):
 
 # Rule customization function
 def customizeRules():
-	choice = dialogRootCustomizeRules(base, optionVar.get()).result
-	if choice == stringCreateRules:
-		result = dialogNewCustomizeRules(base, optionVar.get()).result
-		#print(result)
+	def saveRuleFile(result):
 		if type(result) is dict:
 			savefile = fdg.asksaveasfilename( \
 				parent = base, \
@@ -202,7 +210,14 @@ def customizeRules():
 				#print("Main result:", result)
 				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
-	elif choice == stringLoadRules:
+
+	choice = dialogRootCustomizeRules(base, optionVar.get()).result
+	if choice == stringCreateRules:
+		result = dialogNewCustomizeRules(base, optionVar.get()).result
+		#print(result)
+		saveRuleFile(result)
+	elif choice in (stringLoadRules, stringModifyRules):
+		global dictCustomRules
 		loadfile = fdg.askopenfilename( \
 			parent = base, \
 			title = "Select a file to load from:", \
@@ -224,7 +239,8 @@ def customizeRules():
 				#print(type(loaded))
 				#print(loaded)
 			except:
-				pass
+				mbx.showinfo("File Load Error", "Unable to load the rules from " + loadfile + ".")
+				return None
 			if loaded[-1] != optionVar.get():
 				if mbx.askyesno( \
 					"Different Automaton Detected", \
@@ -233,6 +249,16 @@ def customizeRules():
 						+ "\". Do you wish to continue loading and switch to the automaton in the file?" \
 					):
 					optionVar.set(loaded[-1])
+				else:
+					return None
+			dictCustomRules = loaded
+			mbx.showinfo("Success!", "Your file was loaded successfully.")
+		else:
+			return None
+
+		if choice == stringModifyRules:
+			result = dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules).result
+			saveRuleFile(result)
 	return None
 
 base = tk.Tk()
