@@ -292,6 +292,21 @@ def customizeRules():
 		dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules, True)
 	return None
 
+def loadCheck(newOption):
+	global dictCustomRules
+	if len(dictCustomRules) > 0 and dictCustomRules[-1][:4] != newOption[:4]:
+		if mbx.askyesno( \
+			"Automaton Change Pending", \
+			"Changing your automaton will unload the custom ruleset currently loaded. Do you wish to proceed?" \
+		):
+			dictCustomRules = {}
+			labelCustomLoaded.config( \
+				state = "disabled", \
+				text = "Custom Rules Unloaded" \
+			)
+		else:
+			optionVar.set("Rule 30" if dictCustomRules[-1] == "Rule N" else "Langton\'s Ant")
+
 base = tk.Tk()
 base.title("Cellular Automata Tiling Weaver")
 base.resizable(False, False)
@@ -323,7 +338,7 @@ autOptions = [ 'Rule 30', 'Rule 110', 'Toothpick Sequence', 'Langton\'s Ant', 'S
  			   'Hodgepodge Machine' ]
 optionVar = tk.StringVar(base)
 optionVar.set('Rule 30') #default rule
-autMenu = tk.OptionMenu(settings, optionVar, *autOptions)
+autMenu = tk.OptionMenu(settings, optionVar, *autOptions, command = loadCheck)
 
 # A proxy class that does a number of things: store data pertinent to an
 # automaton in immediate memory, convert between JSON data and automaton-
