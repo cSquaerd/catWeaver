@@ -3,6 +3,7 @@ import tkinter.simpledialog as sdg
 import tkinter.messagebox as mbx
 import tkinter.font as tkf
 import tkinter.filedialog as fdg
+import math
 import random as rnd
 import platform as pt
 import time
@@ -391,14 +392,39 @@ class DialogSetInitial(sdg.Dialog):
 			tk.Button(self, text="Random").pack()
 
 
-aut_proxy = AutomatonProxy()
+def load_automaton():
+	global dictCustomRules
+	rule = None
+	aut = None
+	if dictCustomRules[-1] == "Rule N":
+		rule = 0
+		for i in range(8):
+			rule += (2 ** i) * dictCustomRules[i]
+
+		aut = automata.ElementaryAutomaton(400, rule, 400, edgeRule=automata.WRAP_GRID)
+
+	elif dictCustomRules[-1] == "Langton's Ant":
+		mbx.showerror("Error", "The implementation of Langton's ant is under construction.")
+		aut = autList[autOptions.index(optionVar.get())]
+
+	else:
+		mbx.showerror("Wait, what?", "This shouldn't be happening!")
+		aut = autList[autOptions.index(optionVar.get())]
+
+	return aut
+
 
 def output_img():
+	global dictCustomRules
 	grid = []
 	colors = []
-	autCurrent = 0
+	autCurrent = None
 	try:
-		autCurrent = autList[autOptions.index(optionVar.get())]
+		if not dictCustomRules:
+			autCurrent = autList[autOptions.index(optionVar.get())]
+		else:
+			autCurrent = load_automaton()
+
 		autCurrent.reset_board()
 		if not (autCurrent.is_empty()):
 			filename = fdg.asksaveasfilename( \
