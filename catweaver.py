@@ -185,6 +185,20 @@ class dialogNewCustomizeRules(sdg.Dialog):
 	def apply(self):
 		if hasattr(self, "fields"):
 			self.result = self.fields
+	def validate(self):
+		if self.automaton == "Langton\'s Ant":
+			try:
+				for i in range(self.varNumColors.get()):
+					#print(self.fields[i]["varColor"].get())
+					int(self.fields[i]["varColor"].get()[1:], base = 16)
+					if len(self.fields[i]["varColor"].get()) != 7:
+						int("foo")
+				return 1
+			except ValueError:
+				mbx.showerror("Color Error", "The color fields must be six-digit hex values preceded by a # symbol.")
+				return 0
+		else:
+			return 1
 
 # Rule customization function
 def customizeRules():
