@@ -117,6 +117,12 @@ class dialogNewCustomizeRules(sdg.Dialog):
 
 			self.fields[i] = localField
 
+	def refreshRuleID(self):
+		k = 0
+		for n in range(8):
+			k += 2 ** (n) if self.fields[n].get() else 0
+		self.ruleID.set(k)
+
 	def body(self, master):
 		if self.automaton in tupleRuleNs:
 			self.automaton = "Rule N"
@@ -132,6 +138,12 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				text = "Each binary string corresponds to a pattern of cells. The value you set for each pattern is the value the center cell of the pattern will become in the next generation.", \
 				justify = tk.LEFT, wraplength = 400, font = fontNormal \
 			).grid(row = 0, column = 0, columnspan = 8)
+			self.tempLF = tk.LabelFrame( \
+				master, text = "Rule ID", font = fontNormal \
+			)
+			self.ruleID = tk.IntVar(self, 0)
+			tk.Label(self.tempLF, textvariable = self.ruleID, font = fontNormal).pack()
+			self.tempLF.grid(row = 2, column = 0, columnspan = 2, padx = 2)
 			self.ruleNLabels = ("111", "110", "101", "100", "011", "010", "001", "000")
 
 			for n in range(8):
@@ -141,11 +153,29 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				self.fields[7 - n] = tk.BooleanVar(self, False)
 				tk.OptionMenu( \
 					self.tempLF, self.fields[7 - n], \
-					False, True \
+					False, True, \
+					command = lambda n: self.refreshRuleID() \
 				).pack()
 				self.tempLF.grid(row = 1, column = n, padx = 2)
 				if type(self.oldRules) is not type(None):
 					self.fields[7 - n].set(self.oldRules[7 - n])
+
+			self.fields[-2] = tk.StringVar(self, "#000000")
+			self.fields[-3] = tk.StringVar(self, "#FFFFFF")
+			ruleNColorLabels = ("Inactive Color", "Active Color")
+			for n in range (2):
+				self.tempLF = tk.LabelFrame( \
+					master, text = ruleNColorLabels[n], font = fontNormal \
+				)
+				tk.Entry( \
+					self.tempLF, \
+					textvariable = self.fields[-2 - n], \
+					font = fontNormal \
+				).pack()
+				self.tempLF.grid( \
+					row = 2, column = 3 * (n + 1) - 1, columnspan = 3, \
+					padx = 2, pady = 4 \
+				)
 
 		elif self.automaton == "Langton\'s Ant":
 			self.loadLA = False
@@ -187,6 +217,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		if hasattr(self, "fields"):
 			self.result = self.fields
 	def validate(self):
+		errorTitle = "Color Error"
+		errorMessage = "The color fields must be six-digit hex values preceded by a # symbol."
 		if self.automaton == "Langton\'s Ant":
 			try:
 				for i in range(self.varNumColors.get()):
@@ -196,7 +228,17 @@ class dialogNewCustomizeRules(sdg.Dialog):
 						int("foo")
 				return 1
 			except ValueError:
-				mbx.showerror("Color Error", "The color fields must be six-digit hex values preceded by a # symbol.")
+				mbx.showerror(errorTitle, errorMessage)
+				return 0
+		elif self.automaton == "Rule N":
+			try:
+				for i in range(-3, -1):
+					int(self.fields[i].get()[1:], base = 16)
+					if len(self.fields[i].get()) != 7:
+						int("bar")
+				return 1
+			except ValueError:
+				mbx.showerror(errorTitle, errorMessage)
 				return 0
 		else:
 			return 1
@@ -214,7 +256,7 @@ def customizeRules():
 			if type(savefile) is str and len(savefile) > 0:
 				#print(savefile)
 				if optionVar.get() in ("Rule 30", "Rule 110"):
-					for n in range(len(list(result.keys())) - 1):
+					for n in [-3, -2] + list(range(8)):
 						result[n] = result[n].get()
 				elif optionVar.get() == "Langton\'s Ant":
 					for n in range(len(list(result.keys())) - 1):
@@ -227,8 +269,8 @@ def customizeRules():
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
 				f.close()
-				#print("Main result:", result)
-				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
+				print("Main result:", result)
+				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
@@ -256,9 +298,9 @@ def customizeRules():
 				for s in originalKeys:
 					loaded[int(s)] = loaded[s]
 					del loaded[s]
-				#print("For-Loop Complete!")
-				#print(type(loaded))
-				#print(loaded)
+				print("For-Loop Complete!")
+				print(type(loaded))
+				print(loaded)
 			except:
 				mbx.showinfo("File Load Error", "Unable to load the rules from " + loadfile + ".")
 				return None
