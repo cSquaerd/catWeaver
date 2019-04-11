@@ -129,7 +129,7 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		self.title("Customize " + self.automaton + " Rules")
 		self.resizable(False, False)
 		if self.view:
-			tk.Label(master, text = "Read-Only Mode: Changes Will Not Be Saved", font = fontNormal).grid(row = 2, column = 0, columnspan = 8, pady = 2)
+			tk.Label(master, text = "Read-Only Mode: Changes Will Not Be Saved", font = fontNormal).grid(row = 3, column = 0, columnspan = 8, pady = 2)
 		self.fields = {}
 		self.fields[-1] = self.automaton
 		if self.automaton == "Rule N":
@@ -185,11 +185,6 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				2, 3, 4, 5, 6, 7, 8, \
 				command = lambda n : self.refreshLAFields() \
 			)
-			self.buttonRefresh = tk.Button( \
-				master, text = "Refresh Fields", \
-				command = self.refreshLAFields, \
-				font = fontNormal \
-			)
 			self.frameLAColors = tk.LabelFrame( \
 				master, text = "Colors", \
 				relief = "ridge", bd = 2, font = fontNormal \
@@ -207,7 +202,6 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				font = fontNormal \
 			).grid(row = 0, column = 0)
 			self.optionsNumColors.grid(row = 0, column = 1)
-			#self.buttonRefresh.grid(row = 0, column = 3)
 			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2, padx = 2)
 			self.frameLARules.grid(row = 1, column = 2, columnspan = 2, padx = 2)
 			self.refreshLAFields()
@@ -222,7 +216,6 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		if self.automaton == "Langton\'s Ant":
 			try:
 				for i in range(self.varNumColors.get()):
-					#print(self.fields[i]["varColor"].get())
 					int(self.fields[i]["varColor"].get()[1:], base = 16)
 					if len(self.fields[i]["varColor"].get()) != 7:
 						int("foo")
@@ -254,7 +247,6 @@ def customizeRules():
 				filetypes = tupleFileTypes \
 			)
 			if type(savefile) is str and len(savefile) > 0:
-				#print(savefile)
 				if optionVar.get() in ("Rule 30", "Rule 110"):
 					for n in [-3, -2] + list(range(8)):
 						result[n] = result[n].get()
@@ -263,9 +255,6 @@ def customizeRules():
 						for k in result[n].keys():
 							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
 								result[n][k] = result[n][k].get()
-
-				#result[-1] = optionVar.get()
-				#print(result)
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
 				f.close()
@@ -276,7 +265,6 @@ def customizeRules():
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
-		#print(result)
 		saveRuleFile(result)
 	elif choice in (stringLoadRules, stringModifyRules) or \
 		(choice == stringViewRules and labelCustomLoaded.config()["state"][4] != "normal"):
@@ -292,15 +280,9 @@ def customizeRules():
 				f = open(loadfile, "r")
 				loaded = json.loads(f.read())
 				originalKeys = list(loaded.keys())
-				#print(originalKeys)
-				#print(type(loaded))
-				#print(loaded)
 				for s in originalKeys:
 					loaded[int(s)] = loaded[s]
 					del loaded[s]
-				print("For-Loop Complete!")
-				print(type(loaded))
-				print(loaded)
 			except:
 				mbx.showinfo("File Load Error", "Unable to load the rules from " + loadfile + ".")
 				return None
@@ -317,12 +299,10 @@ def customizeRules():
 					return None
 			dictCustomRules = loaded
 			automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG"}
-			#print(labelCustomLoaded.config()["state"][4])
 			labelCustomLoaded.config( \
 				state = "normal", \
 				text = "Custom Rules Loaded [" + automatonAcronyms[dictCustomRules[-1]] + ']' \
 			)
-			#print(labelCustomLoaded.config()["state"][4])
 			mbx.showinfo("Success!", "Your file was loaded successfully.")
 		else:
 			return None
