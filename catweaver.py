@@ -3,6 +3,7 @@ import tkinter.simpledialog as sdg
 import tkinter.messagebox as mbx
 import tkinter.font as tkf
 import tkinter.filedialog as fdg
+import tkinter.colorchooser as clc
 import math
 import random as rnd
 import platform as pt
@@ -123,15 +124,34 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			k += 2 ** (n) if self.fields[n].get() else 0
 		self.ruleID.set(k)
 
+	def changeColor(self, n):
+		self.fields[n].set( \
+			clc.askcolor( \
+				parent = self, \
+				title = "Choose a color:", \
+				initialcolor = self.fields[n].get() \
+			)[1] \
+		)
+		self.fields[n - 2].config( \
+			background = self.fields[n].get(), \
+			foreground = '#' + "{:06x}".format( \
+				int(self.fields[n].get()[1:], base = 16) ^ 0xFFFFFF \
+			)
+		)
+
 	def body(self, master):
 		if self.automaton in tupleRuleNs:
 			self.automaton = "Rule N"
 		self.title("Customize " + self.automaton + " Rules")
 		self.resizable(False, False)
 		if self.view:
-			tk.Label(master, text = "Read-Only Mode: Changes Will Not Be Saved", font = fontNormal).grid(row = 3, column = 0, columnspan = 8, pady = 2)
+			tk.Label( \
+				master, text = "Read-Only Mode: Changes Will Not Be Saved", \
+				font = fontNormal \
+			).grid(row = 3, column = 0, columnspan = 8, pady = 2)
 		self.fields = {}
 		self.fields[-1] = self.automaton
+
 		if self.automaton == "Rule N":
 			tk.Label( \
 				master, \
@@ -164,18 +184,32 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.fields[-3] = tk.StringVar(self, "#FFFFFF")
 			ruleNColorLabels = ("Inactive Color", "Active Color")
 			for n in range (2):
+				if type(self.oldRules) is not type(None):
+					self.fields[-2 - n].set(self.oldRules[-2 - n])
 				self.tempLF = tk.LabelFrame( \
 					master, text = ruleNColorLabels[n], font = fontNormal \
 				)
-				tk.Entry( \
+				self.fields[-4 - n] = tk.Button( \
 					self.tempLF, \
 					textvariable = self.fields[-2 - n], \
+					background = self.fields[-2 - n].get(), \
+					foreground = '#' + "{:06x}".format( \
+						int(self.fields[-2 - n].get()[1:], base = 16) ^ 0xFFFFFF \
+					), \
 					font = fontNormal \
-				).pack()
+				)
+				self.fields[-4 - n].pack()
 				self.tempLF.grid( \
 					row = 2, column = 3 * (n + 1) - 1, columnspan = 3, \
 					padx = 2, pady = 4 \
 				)
+
+			self.fields[-4].config( \
+				command = lambda : self.changeColor(-2)
+			)
+			self.fields[-5].config( \
+				command = lambda : self.changeColor(-3)
+			)
 
 		elif self.automaton == "Langton\'s Ant":
 			self.loadLA = False
@@ -205,6 +239,7 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2, padx = 2)
 			self.frameLARules.grid(row = 1, column = 2, columnspan = 2, padx = 2)
 			self.refreshLAFields()
+
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
 	def apply(self):
@@ -248,6 +283,8 @@ def customizeRules():
 			)
 			if type(savefile) is str and len(savefile) > 0:
 				if optionVar.get() in ("Rule 30", "Rule 110"):
+					del result[-5]
+					del result[-4]
 					for n in [-3, -2] + list(range(8)):
 						result[n] = result[n].get()
 				elif optionVar.get() == "Langton\'s Ant":
@@ -258,8 +295,8 @@ def customizeRules():
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
 				f.close()
-				print("Main result:", result)
-				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
+				#print("Main result:", result)
+				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
