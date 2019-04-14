@@ -83,17 +83,23 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		for i in range(0, self.varNumColors.get()):
 			localField = {}
 
-
 			tk.Label( \
-				self.frameLAColors, text = "Color " + str(i), \
+				self.frameLAColors, text = "Color " + str(i) + ':', \
 				font = fontNormal \
 			).grid(row = i, column = 0)
-			localField["varColor"] = tk.StringVar(self, "#000000")
-			tk.Entry( \
+			localField["varColor"] = tk.StringVar(self, '#' + \
+				6 * hex(0xf * (i + 1) // self.varNumColors.get())[2] \
+			)
+			localField["btnColor"] = tk.Button( \
 				self.frameLAColors, \
 				textvariable = localField["varColor"], \
+				background = localField["varColor"].get(), \
+				foreground = '#' + "{:06x}".format( \
+					int(localField["varColor"].get()[1:], base = 16) ^ 0xFFFFFF \
+				), \
 				font = fontNormal \
-			).grid(row = i, column = 1)
+			)
+			localField["btnColor"].grid(row = i, column = 1)
 
 			localField["varRead"] = tk.IntVar(self, i)
 			tk.OptionMenu( \
@@ -101,10 +107,10 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				i \
 			).grid(row = i + 1, column = 0)
 
-			localField["varRotate"] = tk.StringVar(self, "L90")
+			localField["varRotate"] = tk.StringVar(self, "0")
 			tk.OptionMenu( \
 				self.frameLARules, localField["varRotate"], \
-				"L90", "R90", "180" \
+				"0", "L90", "R90", "180" \
 			).grid(row = i + 1, column = 1)
 
 			localField["varWrite"] = tk.IntVar(self, 0)
@@ -117,6 +123,20 @@ class dialogNewCustomizeRules(sdg.Dialog):
 					localField[k].set(self.oldRules[i][k])
 
 			self.fields[i] = localField
+		self.fields[0]["btnColor"].config(command = lambda : self.changeColor(0))
+		self.fields[1]["btnColor"].config(command = lambda : self.changeColor(1))
+		if self.varNumColors.get() > 2:
+			self.fields[2]["btnColor"].config(command = lambda : self.changeColor(2))
+		if self.varNumColors.get() > 3:
+			self.fields[3]["btnColor"].config(command = lambda : self.changeColor(3))
+		if self.varNumColors.get() > 4:
+			self.fields[4]["btnColor"].config(command = lambda : self.changeColor(4))
+		if self.varNumColors.get() > 5:
+			self.fields[5]["btnColor"].config(command = lambda : self.changeColor(5))
+		if self.varNumColors.get() > 6:
+			self.fields[6]["btnColor"].config(command = lambda : self.changeColor(6))
+		if self.varNumColors.get() > 7:
+			self.fields[7]["btnColor"].config(command = lambda : self.changeColor(7))
 
 	def refreshRuleID(self):
 		k = 0
@@ -125,19 +145,34 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		self.ruleID.set(k)
 
 	def changeColor(self, n):
-		self.fields[n].set( \
-			clc.askcolor( \
-				parent = self, \
-				title = "Choose a color:", \
-				initialcolor = self.fields[n].get() \
-			)[1] \
-		)
-		self.fields[n - 2].config( \
-			background = self.fields[n].get(), \
-			foreground = '#' + "{:06x}".format( \
-				int(self.fields[n].get()[1:], base = 16) ^ 0xFFFFFF \
+		if self.automaton == "Rule N":
+			self.fields[n].set( \
+				clc.askcolor( \
+					parent = self, \
+					title = "Choose a color:", \
+					initialcolor = self.fields[n].get() \
+				)[1] \
 			)
-		)
+			self.fields[n - 2].config( \
+				background = self.fields[n].get(), \
+				foreground = '#' + "{:06x}".format( \
+					int(self.fields[n].get()[1:], base = 16) ^ 0xFFFFFF \
+				)
+			)
+		elif self.automaton == "Langton\'s Ant":
+			self.fields[n]["varColor"].set( \
+				clc.askcolor( \
+					parent = self, \
+					title = "Choose a color:", \
+					initialcolor = self.fields[n]["varColor"].get() \
+				)[1] \
+			)
+			self.fields[n]["btnColor"].config( \
+				background = self.fields[n]["varColor"].get(), \
+				foreground = '#' + "{:06x}".format( \
+					int(self.fields[n]["varColor"].get()[1:], base = 16) ^ 0xFFFFFF \
+				)
+			)
 
 	def body(self, master):
 		if self.automaton in tupleRuleNs:
@@ -289,6 +324,7 @@ def customizeRules():
 						result[n] = result[n].get()
 				elif optionVar.get() == "Langton\'s Ant":
 					for n in range(len(list(result.keys())) - 1):
+						del result[n]["btnColor"]
 						for k in result[n].keys():
 							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
 								result[n][k] = result[n][k].get()
