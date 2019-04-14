@@ -137,6 +137,22 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.fields[6]["btnColor"].config(command = lambda : self.changeColor(6))
 		if self.varNumColors.get() > 7:
 			self.fields[7]["btnColor"].config(command = lambda : self.changeColor(7))
+		if self.varNumColors.get() > 8:
+			self.fields[8]["btnColor"].config(command = lambda : self.changeColor(8))
+		if self.varNumColors.get() > 9:
+			self.fields[9]["btnColor"].config(command = lambda : self.changeColor(9))
+		if self.varNumColors.get() > 10:
+			self.fields[10]["btnColor"].config(command = lambda : self.changeColor(10))
+		if self.varNumColors.get() > 11:
+			self.fields[11]["btnColor"].config(command = lambda : self.changeColor(11))
+		if self.varNumColors.get() > 12:
+			self.fields[12]["btnColor"].config(command = lambda : self.changeColor(12))
+		if self.varNumColors.get() > 13:
+			self.fields[13]["btnColor"].config(command = lambda : self.changeColor(13))
+		if self.varNumColors.get() > 14:
+			self.fields[14]["btnColor"].config(command = lambda : self.changeColor(14))
+		if self.varNumColors.get() > 15:
+			self.fields[15]["btnColor"].config(command = lambda : self.changeColor(15))
 
 	def refreshRuleID(self):
 		k = 0
@@ -251,7 +267,7 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
 				master, self.varNumColors, \
-				2, 3, 4, 5, 6, 7, 8, \
+				2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
 				command = lambda n : self.refreshLAFields() \
 			)
 			self.frameLAColors = tk.LabelFrame( \
