@@ -120,7 +120,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			).grid(row = i + 1, column = 2)
 			if self.loadLA:
 				for k in localField.keys():
-					localField[k].set(self.oldRules[i][k])
+					if k != "btnColor":
+						localField[k].set(self.oldRules[i][k])
 
 			self.fields[i] = localField
 		self.fields[0]["btnColor"].config(command = lambda : self.changeColor(0))
