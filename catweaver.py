@@ -361,7 +361,18 @@ class dialogNewCustomizeRules(sdg.Dialog):
 					row = 0 if s[0] == 'N' else 2 if s[0] == 'S' else 1, \
 					column = neighborColumns[neighbors.index(s)] \
 				)
+				if self.oldRules is not None:
+					self.fields["specificNeighbors"][s].set( \
+						self.oldRules["specificNeighbors"][s] \
+					)
 			self.frameSpecNeb.grid(row = 1, column = 1, padx = 2)
+
+			if self.oldRules is not None:
+				for s in (
+					"requiredLiveNeighbors", "requireSpecificNeighbors", \
+					"colorLive", "colorDead", \
+				):
+					self.fields[s].set(self.oldRules[s])
 
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
