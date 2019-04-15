@@ -311,7 +311,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			)
 			tk.OptionMenu( \
 				self.frameReqNeb, self.fields["requiredLiveNeighbors"],
-				*tuple(range(1,9)) \
+				*tuple(range(1,9)), command = lambda x : \
+				self.fields["requireSpecificNeighbors"].set(False) \
 			).grid(row = 1, column = 1, padx = 2)
 			tk.Checkbutton( \
 				self.frameReqNeb, text = "Require Specific Neighbors", \
@@ -404,6 +405,12 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			except ValueError:
 				mbx.showerror(errorTitle, errorMessage)
 				return 0
+		elif self.automaton == "Seeds":
+			if self.fields["requiredLiveNeighbors"].get() < 1:
+				mbx.showerror("Number Error", "You must have a requirement of at least 1 live neighbor cell.")
+				return 0
+			else:
+				return 1
 		else:
 			return 1
 
