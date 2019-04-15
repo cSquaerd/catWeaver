@@ -3,6 +3,7 @@ import tkinter.simpledialog as sdg
 import tkinter.messagebox as mbx
 import tkinter.font as tkf
 import tkinter.filedialog as fdg
+import tkinter.colorchooser as clc
 import math
 import random as rnd
 import platform as pt
@@ -39,7 +40,7 @@ class dialogRootCustomizeRules(sdg.Dialog):
 		self.title("Customize Rules")
 		self.resizable(False, False)
 
-		if self.automaton in ("Toothpick Sequence", "Seeds", "Hodgepodge Machine"):
+		if self.automaton in ("Toothpick Sequence", "Hodgepodge Machine"):
 			tk.Label(self, text = "Your selected automaton does not support customization.", font = fontNormal).pack()
 			self.varCustomizeChoice = tk.StringVar(self, "")
 
@@ -82,17 +83,23 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		for i in range(0, self.varNumColors.get()):
 			localField = {}
 
-
 			tk.Label( \
-				self.frameLAColors, text = "Color " + str(i), \
+				self.frameLAColors, text = "Color " + str(i) + ':', \
 				font = fontNormal \
 			).grid(row = i, column = 0)
-			localField["varColor"] = tk.StringVar(self, "#000000")
-			tk.Entry( \
+			localField["varColor"] = tk.StringVar(self, '#' + \
+				6 * hex(0xf * (i + 1) // self.varNumColors.get())[2] \
+			)
+			localField["btnColor"] = tk.Button( \
 				self.frameLAColors, \
 				textvariable = localField["varColor"], \
+				background = localField["varColor"].get(), \
+				foreground = '#' + "{:06x}".format( \
+					int(localField["varColor"].get()[1:], base = 16) ^ 0xFFFFFF \
+				), \
 				font = fontNormal \
-			).grid(row = i, column = 1)
+			)
+			localField["btnColor"].grid(row = i, column = 1)
 
 			localField["varRead"] = tk.IntVar(self, i)
 			tk.OptionMenu( \
@@ -100,10 +107,10 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				i \
 			).grid(row = i + 1, column = 0)
 
-			localField["varRotate"] = tk.StringVar(self, "L90")
+			localField["varRotate"] = tk.StringVar(self, "0")
 			tk.OptionMenu( \
 				self.frameLARules, localField["varRotate"], \
-				"L90", "R90", "180" \
+				"0", "L90", "R90", "180" \
 			).grid(row = i + 1, column = 1)
 
 			localField["varWrite"] = tk.IntVar(self, 0)
@@ -113,9 +120,83 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			).grid(row = i + 1, column = 2)
 			if self.loadLA:
 				for k in localField.keys():
-					localField[k].set(self.oldRules[i][k])
+					if k != "btnColor":
+						localField[k].set(self.oldRules[i][k])
 
 			self.fields[i] = localField
+		self.fields[0]["btnColor"].config(command = lambda : self.changeColor(0))
+		self.fields[1]["btnColor"].config(command = lambda : self.changeColor(1))
+		if self.varNumColors.get() > 2:
+			self.fields[2]["btnColor"].config(command = lambda : self.changeColor(2))
+		if self.varNumColors.get() > 3:
+			self.fields[3]["btnColor"].config(command = lambda : self.changeColor(3))
+		if self.varNumColors.get() > 4:
+			self.fields[4]["btnColor"].config(command = lambda : self.changeColor(4))
+		if self.varNumColors.get() > 5:
+			self.fields[5]["btnColor"].config(command = lambda : self.changeColor(5))
+		if self.varNumColors.get() > 6:
+			self.fields[6]["btnColor"].config(command = lambda : self.changeColor(6))
+		if self.varNumColors.get() > 7:
+			self.fields[7]["btnColor"].config(command = lambda : self.changeColor(7))
+		if self.varNumColors.get() > 8:
+			self.fields[8]["btnColor"].config(command = lambda : self.changeColor(8))
+		if self.varNumColors.get() > 9:
+			self.fields[9]["btnColor"].config(command = lambda : self.changeColor(9))
+		if self.varNumColors.get() > 10:
+			self.fields[10]["btnColor"].config(command = lambda : self.changeColor(10))
+		if self.varNumColors.get() > 11:
+			self.fields[11]["btnColor"].config(command = lambda : self.changeColor(11))
+		if self.varNumColors.get() > 12:
+			self.fields[12]["btnColor"].config(command = lambda : self.changeColor(12))
+		if self.varNumColors.get() > 13:
+			self.fields[13]["btnColor"].config(command = lambda : self.changeColor(13))
+		if self.varNumColors.get() > 14:
+			self.fields[14]["btnColor"].config(command = lambda : self.changeColor(14))
+		if self.varNumColors.get() > 15:
+			self.fields[15]["btnColor"].config(command = lambda : self.changeColor(15))
+
+	def refreshRuleID(self):
+		k = 0
+		for n in range(8):
+			k += 2 ** (n) if self.fields[n].get() else 0
+		self.ruleID.set(k)
+
+	def refreshNeighbors(self):
+		if not self.fields["requireSpecificNeighbors"].get():
+			return None
+		n = 0
+		for k in self.fields["specificNeighbors"].keys():
+			n += 1 if self.fields["specificNeighbors"][k].get() else 0
+		self.fields["requiredLiveNeighbors"].set(n)
+
+	def changeColor(self, n):
+		if self.automaton == "Rule N":
+			colorvar = self.fields[n]
+			buttonobj = self.fields[n - 2]
+		elif self.automaton == "Langton\'s Ant":
+			colorvar = self.fields[n]["varColor"]
+			buttonobj = self.fields[n]["btnColor"]
+		elif self.automaton == "Seeds":
+			colorvar = self.fields["color" + n]
+			buttonobj = self.colorButtons[n]
+
+		color = clc.askcolor( \
+			parent = self, \
+			title = "Choose a color:", \
+			initialcolor = colorvar.get() \
+		)[1]
+
+		if color is None:
+			return None
+
+		colorvar.set(color)
+
+		buttonobj.config( \
+			background = colorvar.get(), \
+			foreground = '#' + "{:06x}".format( \
+				int(colorvar.get()[1:], base = 16) ^ 0xFFFFFF \
+			)
+		)
 
 	def body(self, master):
 		if self.automaton in tupleRuleNs:
@@ -123,15 +204,25 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		self.title("Customize " + self.automaton + " Rules")
 		self.resizable(False, False)
 		if self.view:
-			tk.Label(master, text = "Read-Only Mode: Changes Will Not Be Saved", font = fontNormal).grid(row = 2, column = 0, columnspan = 8, pady = 2)
+			tk.Label( \
+				master, text = "Read-Only Mode: Changes Will Not Be Saved", \
+				font = fontNormal \
+			).grid(row = 3, column = 0, columnspan = 8, pady = 2)
 		self.fields = {}
 		self.fields[-1] = self.automaton
+
 		if self.automaton == "Rule N":
 			tk.Label( \
 				master, \
 				text = "Each binary string corresponds to a pattern of cells. The value you set for each pattern is the value the center cell of the pattern will become in the next generation.", \
 				justify = tk.LEFT, wraplength = 400, font = fontNormal \
 			).grid(row = 0, column = 0, columnspan = 8)
+			self.tempLF = tk.LabelFrame( \
+				master, text = "Rule ID", font = fontNormal \
+			)
+			self.ruleID = tk.IntVar(self, 0)
+			tk.Label(self.tempLF, textvariable = self.ruleID, font = fontNormal).pack()
+			self.tempLF.grid(row = 2, column = 0, columnspan = 2, padx = 2)
 			self.ruleNLabels = ("111", "110", "101", "100", "011", "010", "001", "000")
 
 			for n in range(8):
@@ -141,24 +232,51 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				self.fields[7 - n] = tk.BooleanVar(self, False)
 				tk.OptionMenu( \
 					self.tempLF, self.fields[7 - n], \
-					False, True \
+					False, True, \
+					command = lambda n: self.refreshRuleID() \
 				).pack()
 				self.tempLF.grid(row = 1, column = n, padx = 2)
 				if type(self.oldRules) is not type(None):
 					self.fields[7 - n].set(self.oldRules[7 - n])
+
+			self.fields[-2] = tk.StringVar(self, "#000000")
+			self.fields[-3] = tk.StringVar(self, "#FFFFFF")
+			ruleNColorLabels = ("Inactive Color", "Active Color")
+			for n in range (2):
+				if type(self.oldRules) is not type(None):
+					self.fields[-2 - n].set(self.oldRules[-2 - n])
+				self.tempLF = tk.LabelFrame( \
+					master, text = ruleNColorLabels[n], font = fontNormal \
+				)
+				self.fields[-4 - n] = tk.Button( \
+					self.tempLF, \
+					textvariable = self.fields[-2 - n], \
+					background = self.fields[-2 - n].get(), \
+					foreground = '#' + "{:06x}".format( \
+						int(self.fields[-2 - n].get()[1:], base = 16) ^ 0xFFFFFF \
+					), \
+					font = fontNormal \
+				)
+				self.fields[-4 - n].pack()
+				self.tempLF.grid( \
+					row = 2, column = 3 * (n + 1) - 1, columnspan = 3, \
+					padx = 2, pady = 4 \
+				)
+
+			self.fields[-4].config( \
+				command = lambda : self.changeColor(-2)
+			)
+			self.fields[-5].config( \
+				command = lambda : self.changeColor(-3)
+			)
 
 		elif self.automaton == "Langton\'s Ant":
 			self.loadLA = False
 			self.varNumColors = tk.IntVar(self, 2)
 			self.optionsNumColors = tk.OptionMenu( \
 				master, self.varNumColors, \
-				2, 3, 4, 5, 6, 7, 8, \
+				2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
 				command = lambda n : self.refreshLAFields() \
-			)
-			self.buttonRefresh = tk.Button( \
-				master, text = "Refresh Fields", \
-				command = self.refreshLAFields, \
-				font = fontNormal \
 			)
 			self.frameLAColors = tk.LabelFrame( \
 				master, text = "Colors", \
@@ -177,26 +295,112 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				font = fontNormal \
 			).grid(row = 0, column = 0)
 			self.optionsNumColors.grid(row = 0, column = 1)
-			#self.buttonRefresh.grid(row = 0, column = 3)
 			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2, padx = 2)
 			self.frameLARules.grid(row = 1, column = 2, columnspan = 2, padx = 2)
 			self.refreshLAFields()
+
+		elif self.automaton == "Seeds":
+			self.fields["requiredLiveNeighbors"] = tk.IntVar(self, 2)
+			self.fields["requireSpecificNeighbors"] = tk.BooleanVar(self, False)
+			self.fields["specificNeighbors"] = {}
+			self.frameReqNeb = tk.LabelFrame( \
+				master, text = "Required Live Neighbors", \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			tk.OptionMenu( \
+				self.frameReqNeb, self.fields["requiredLiveNeighbors"],
+				*tuple(range(1,9)) \
+			).grid(row = 1, column = 1, padx = 2)
+			tk.Checkbutton( \
+				self.frameReqNeb, text = "Require Specific Neighbors", \
+				variable = self.fields["requireSpecificNeighbors"], \
+				command = lambda : self.refreshNeighbors() \
+			).grid(row = 1, column = 2, padx = 2)
+			self.frameReqNeb.grid(row = 0, column = 0, columnspan = 2)
+
+			self.fields["colorLive"] = tk.StringVar(self, "#FFFFFF")
+			self.fields["colorDead"] = tk.StringVar(self, "#000000")
+			self.colorButtons = {}
+			self.frameSDColors = tk.LabelFrame( \
+				master, text = "Colors", font = fontNormal \
+			)
+			states = ("Live", "Dead")
+			for s in states:
+				tk.Label( \
+					self.frameSDColors, text = s + ':', font = fontNormal \
+				).grid( \
+					row = states.index(s), column = 0, padx = 2 \
+				)
+				self.colorButtons[s] = tk.Button( \
+					self.frameSDColors, textvariable = self.fields["color" + s], \
+					background = self.fields["color" + s].get(), \
+					foreground = '#' + "{:06x}".format( \
+						int(self.fields["color" + s].get()[1:], base = 16) ^ 0xFFFFFF \
+					), \
+				)
+				self.colorButtons[s].grid(row = states.index(s), column = 1)
+			self.colorButtons["Live"].config(command = lambda : self.changeColor("Live"))
+			self.colorButtons["Dead"].config(command = lambda : self.changeColor("Dead"))
+			self.frameSDColors.grid(row = 1, column = 0, padx = 2, sticky = "n")
+
+			self.frameSpecNeb = tk.LabelFrame( \
+				master, text = "Specific Neighbors",  \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			self.specificNeighborOptions = {}
+			neighbors = ("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+			neighborColumns = (0, 1, 2, 0, 2, 0, 1, 2)
+			for s in neighbors:
+				self.fields["specificNeighbors"][s] = \
+					tk.BooleanVar(self, False)
+				self.specificNeighborOptions[s] = tk.OptionMenu( \
+					self.frameSpecNeb, self.fields["specificNeighbors"][s], \
+					False, True, command = lambda x : self.refreshNeighbors() \
+				)
+				self.specificNeighborOptions[s].grid( \
+					row = 0 if s[0] == 'N' else 2 if s[0] == 'S' else 1, \
+					column = neighborColumns[neighbors.index(s)] \
+				)
+				if self.oldRules is not None:
+					self.fields["specificNeighbors"][s].set( \
+						self.oldRules["specificNeighbors"][s] \
+					)
+			self.frameSpecNeb.grid(row = 1, column = 1, padx = 2)
+
+			if self.oldRules is not None:
+				for s in (
+					"requiredLiveNeighbors", "requireSpecificNeighbors", \
+					"colorLive", "colorDead", \
+				):
+					self.fields[s].set(self.oldRules[s])
+
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
 	def apply(self):
 		if hasattr(self, "fields"):
 			self.result = self.fields
 	def validate(self):
+		errorTitle = "Color Error"
+		errorMessage = "The color fields must be six-digit hex values preceded by a # symbol."
 		if self.automaton == "Langton\'s Ant":
 			try:
 				for i in range(self.varNumColors.get()):
-					#print(self.fields[i]["varColor"].get())
 					int(self.fields[i]["varColor"].get()[1:], base = 16)
 					if len(self.fields[i]["varColor"].get()) != 7:
 						int("foo")
 				return 1
 			except ValueError:
-				mbx.showerror("Color Error", "The color fields must be six-digit hex values preceded by a # symbol.")
+				mbx.showerror(errorTitle, errorMessage)
+				return 0
+		elif self.automaton == "Rule N":
+			try:
+				for i in range(-3, -1):
+					int(self.fields[i].get()[1:], base = 16)
+					if len(self.fields[i].get()) != 7:
+						int("bar")
+				return 1
+			except ValueError:
+				mbx.showerror(errorTitle, errorMessage)
 				return 0
 		else:
 			return 1
@@ -212,29 +416,38 @@ def customizeRules():
 				filetypes = tupleFileTypes \
 			)
 			if type(savefile) is str and len(savefile) > 0:
-				#print(savefile)
 				if optionVar.get() in ("Rule 30", "Rule 110"):
-					for n in range(len(list(result.keys())) - 1):
+					del result[-5]
+					del result[-4]
+					for n in [-3, -2] + list(range(8)):
 						result[n] = result[n].get()
 				elif optionVar.get() == "Langton\'s Ant":
 					for n in range(len(list(result.keys())) - 1):
+						del result[n]["btnColor"]
 						for k in result[n].keys():
 							if type(result[n][k]) in [tk.StringVar, tk.IntVar]:
 								result[n][k] = result[n][k].get()
-
-				#result[-1] = optionVar.get()
-				#print(result)
+				elif optionVar.get() == "Seeds":
+					del result[-1]
+					result["-1"] = "Seeds"
+					for k in (
+						"requiredLiveNeighbors", "requireSpecificNeighbors", \
+						"colorLive", "colorDead", \
+					):
+						result[k] = result[k].get()
+					for k in ("NW", "N", "NE", "W", "E", "SW", "S", "SE"):
+						result["specificNeighbors"][k] = \
+						result["specificNeighbors"][k].get()
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
 				f.close()
-				#print("Main result:", result)
-				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
+				print("Main result:", result)
+				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
-		#print(result)
 		saveRuleFile(result)
 	elif choice in (stringLoadRules, stringModifyRules) or \
 		(choice == stringViewRules and labelCustomLoaded.config()["state"][4] != "normal"):
@@ -249,21 +462,19 @@ def customizeRules():
 			try:
 				f = open(loadfile, "r")
 				loaded = json.loads(f.read())
-				originalKeys = list(loaded.keys())
-				#print(originalKeys)
-				#print(type(loaded))
-				#print(loaded)
-				for s in originalKeys:
-					loaded[int(s)] = loaded[s]
-					del loaded[s]
-				#print("For-Loop Complete!")
-				#print(type(loaded))
-				#print(loaded)
+				if loaded["-1"] != "Seeds":
+					originalKeys = list(loaded.keys())
+					for s in originalKeys:
+						loaded[int(s)] = loaded[s]
+						del loaded[s]
+				else:
+					del loaded["-1"]
+					loaded[-1] = "Seeds"
 			except:
 				mbx.showinfo("File Load Error", "Unable to load the rules from " + loadfile + ".")
 				return None
 			if loaded[-1][:4] != optionVar.get()[:4]:
-				optionVarTranslator = {"Rule N": "Rule 30", "Langton\'s Ant": "Langton\'s Ant"}
+				optionVarTranslator = {"Rule N": "Rule 30", "Langton\'s Ant": "Langton\'s Ant", "Seeds": "Seeds"}
 				if mbx.askyesno( \
 					"Different Automaton Detected", \
 					"This file contains rules for the automaton: \"" \
@@ -274,13 +485,11 @@ def customizeRules():
 				else:
 					return None
 			dictCustomRules = loaded
-			automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG"}
-			#print(labelCustomLoaded.config()["state"][4])
+			automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG", "Seeds": "SEEDS"}
 			labelCustomLoaded.config( \
 				state = "normal", \
 				text = "Custom Rules Loaded [" + automatonAcronyms[dictCustomRules[-1]] + ']' \
 			)
-			#print(labelCustomLoaded.config()["state"][4])
 			mbx.showinfo("Success!", "Your file was loaded successfully.")
 		else:
 			return None
