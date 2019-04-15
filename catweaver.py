@@ -30,6 +30,7 @@ tupleFileTypes = ( \
 	("All Files", "*.*") \
 )
 dictCustomRules = {}
+listColors = ["#000000", "#FFFFFF"]
 
 # Rule customization root dialog window
 class dialogRootCustomizeRules(sdg.Dialog):
@@ -559,57 +560,6 @@ optionVar = tk.StringVar(base)
 optionVar.set('Rule 30') #default rule
 autMenu = tk.OptionMenu(settings, optionVar, *autOptions, command = loadCheck)
 
-# A proxy class that does a number of things: store data pertinent to an
-# automaton in immediate memory, convert between JSON data and automaton-
-# specific rule strings, and alter configuration data.
-# --- UNDER CONSTRUCTION ---
-class AutomatonProxy:
-	def __init__(self, colors=[(255, 255, 255), (0, 0, 0)]):
-		self.aut = copy.deepcopy(autList[autOptions.index(optionVar.get())])
-		self.autType = self.aut.get_aut_type()
-		self.initCellStates = self.aut.cells
-		self.colors = []
-		self.width = 800
-		self.height = 800
-
-	# Sets the possible colors for the automaton. Note that colors[i] will
-	# mark the color of the state of cells[i] in the automaton.
-	def set_colors(self, colors):
-		self.colors = colors
-
-	# To know how a rule string might be constructed from the JSON data,
-	# first we need to set the automaton type appropriately.
-	def set_automaton(self, type):
-		pass
-
-	def set_dimensions(self, width, height):
-		self.width = width
-		self.height = height
-		self.aut.resize(width, height)
-
-
-	def set_dimensions(self, width):
-		pass
-
-	# Resets all values in the proxy to the default configuration for
-	# each type of automaton.
-	def reset_proxy(self):
-		pass
-
-	# Converts rules from JSON format to an automaton rule string and
-	# loads the rules into the automaton object.
-	def load_rule_string(self, jsonDictionary):
-		pass
-
-	# Sets the initial cell states based on an inputted array.
-	def set_board_state(self):
-		pass
-
-	# Uses the current information to construct an image.
-	def output_img(self):
-		pass
-
-
 class DialogSetInitial(sdg.Dialog):
 	def __init__(self, master, aut):
 		self.automaton = aut
@@ -627,9 +577,11 @@ class DialogSetInitial(sdg.Dialog):
 
 def load_automaton():
 	global dictCustomRules
+	global listColors
 	rule = None
 	aut = None
 	if dictCustomRules[-1] == "Rule N":
+		listColors = [dictCustomRules[-2], dictCustomRules[-3]]
 		rule = 0
 		for i in range(8):
 			rule += (2 ** i) * dictCustomRules[i]
@@ -639,10 +591,12 @@ def load_automaton():
 	elif dictCustomRules[-1] == "Langton's Ant":
 		mbx.showerror("Error", "The implementation of Langton's ant is under construction.")
 		aut = autList[autOptions.index(optionVar.get())]
+		listColors = ["#000000", "#FFFFFF"]
 
 	else:
 		mbx.showerror("Wait, what?", "This shouldn't be happening!")
 		aut = autList[autOptions.index(optionVar.get())]
+		listColors = ["#000000", "#FFFFFF"]
 
 	return aut
 
@@ -673,7 +627,11 @@ def output_img():
 					colors = utilities.linear_gradient((255, 0, 0), (0, 0, 0), 201)
 					utilities.render_img(colors, grid, filename)
 				else:
-					utilities.render_img([(0, 0, 0), (255, 255, 255)], grid, filename)
+					colors = listColors
+					for i, c in enumerate(colors):
+						colors[i] = utilities.hex_string_to_RGB(c)
+
+					utilities.render_img(colors, grid, filename)
 
 				mbx.showinfo("Success", "Image was rendered successfully at {0}".format(filename))
 
