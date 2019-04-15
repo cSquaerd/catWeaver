@@ -40,7 +40,7 @@ class dialogRootCustomizeRules(sdg.Dialog):
 		self.title("Customize Rules")
 		self.resizable(False, False)
 
-		if self.automaton in ("Toothpick Sequence", "Seeds", "Hodgepodge Machine"):
+		if self.automaton in ("Toothpick Sequence", "Hodgepodge Machine"):
 			tk.Label(self, text = "Your selected automaton does not support customization.", font = fontNormal).pack()
 			self.varCustomizeChoice = tk.StringVar(self, "")
 
@@ -160,6 +160,14 @@ class dialogNewCustomizeRules(sdg.Dialog):
 		for n in range(8):
 			k += 2 ** (n) if self.fields[n].get() else 0
 		self.ruleID.set(k)
+
+	def refreshNeighbors(self):
+		if not self.fields["requireSpecificNeighbors"].get():
+			return None
+		n = 0
+		for k in self.fields["specificNeighbors"].keys():
+			n += 1 if self.fields["specificNeighbors"][k].get() else 0
+		self.fields["requiredLiveNeighbors"].set(n)
 
 	def changeColor(self, n):
 		if self.automaton == "Rule N":
@@ -291,6 +299,44 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			self.frameLAColors.grid(row = 1, column = 0, columnspan = 2, padx = 2)
 			self.frameLARules.grid(row = 1, column = 2, columnspan = 2, padx = 2)
 			self.refreshLAFields()
+
+		elif self.automaton == "Seeds":
+			self.fields["requiredLiveNeighbors"] = tk.IntVar(self, 2)
+			self.fields["requireSpecificNeighbors"] = tk.BooleanVar(self, False)
+			self.fields["specificNeighbors"] = {}
+			self.frameReqNeb = tk.LabelFrame( \
+				master, text = "Required Live Neighbors", \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			tk.OptionMenu( \
+				self.frameReqNeb, self.fields["requiredLiveNeighbors"],
+				*tuple(range(1,9)) \
+			).grid(row = 1, column = 1, padx = 2)
+			tk.Checkbutton( \
+				self.frameReqNeb, text = "Require Specific Neighbors", \
+				variable = self.fields["requireSpecificNeighbors"], \
+				command = lambda : self.refreshNeighbors() \
+			).grid(row = 1, column = 2, padx = 2)
+			self.frameReqNeb.pack()
+			self.frameSpecNeb = tk.LabelFrame( \
+				master, text = "Specific Neighbors",  \
+				relief = "ridge", bd = 2, font = fontNormal \
+			)
+			self.specificNeighborOptions = {}
+			neighbors = ("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+			neighborColumns = (0, 1, 2, 0, 2, 0, 1, 2)
+			for s in neighbors:
+				self.fields["specificNeighbors"][s] = \
+					tk.BooleanVar(self, False)
+				self.specificNeighborOptions[s] = tk.OptionMenu( \
+					self.frameSpecNeb, self.fields["specificNeighbors"][s], \
+					False, True, command = lambda x : self.refreshNeighbors() \
+				)
+				self.specificNeighborOptions[s].grid( \
+					row = 0 if s[0] == 'N' else 2 if s[0] == 'S' else 1, \
+					column = neighborColumns[neighbors.index(s)] \
+				)
+			self.frameSpecNeb.pack()
 
 		else:
 			tk.Label(self, text = "Under construction!", font = fontBig).pack()
