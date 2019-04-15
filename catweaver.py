@@ -90,6 +90,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 			localField["varColor"] = tk.StringVar(self, '#' + \
 				6 * hex(0xf * (i + 1) // self.varNumColors.get())[2] \
 			)
+			if self.oldRules is not None:
+				localField["varColor"].set(self.oldRules[i]["varColor"])
 			localField["btnColor"] = tk.Button( \
 				self.frameLAColors, \
 				textvariable = localField["varColor"], \
