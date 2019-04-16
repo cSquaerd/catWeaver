@@ -242,6 +242,7 @@ class dialogNewCustomizeRules(sdg.Dialog):
 				if type(self.oldRules) is not type(None):
 					self.fields[7 - n].set(self.oldRules[7 - n])
 
+			self.refreshRuleID()
 			self.fields[-2] = tk.StringVar(self, "#000000")
 			self.fields[-3] = tk.StringVar(self, "#FFFFFF")
 			ruleNColorLabels = ("Inactive Color", "Active Color")
@@ -451,8 +452,8 @@ def customizeRules():
 				f = open(savefile, "w")
 				f.write(json.dumps(result, sort_keys = True, indent = 2))
 				f.close()
-				print("Main result:", result)
-				print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
+				#print("Main result:", result)
+				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
