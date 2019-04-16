@@ -2,7 +2,7 @@
 ## Cellular Automata Tiling Weaver
 ### Generate images with patterns from popular cellular automata
 ### Written by Charles Cook and Sean Curry
-![alt text](pictures/rule105.png, "Rule 105")
+![alt text](pictures/rule105.png "Rule 105")
 #### ToDo:
 * Implement main automata
 	* One Dimensional Automata
