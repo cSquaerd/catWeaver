@@ -30,7 +30,7 @@ tupleFileTypes = ( \
 	("All Files", "*.*") \
 )
 dictCustomRules = {}
-listColors = ["#000000", "#FFFFFF"]
+listColors = ["#000000", "#ffffff"]
 
 # Rule customization root dialog window
 class dialogRootCustomizeRules(sdg.Dialog):
@@ -541,8 +541,10 @@ viewer.grid(row = 0, column = 0, padx = 2, pady = 2)
 settings = tk.Frame(base, bd=4)
 settings.grid(row = 0, column = 1, padx = 2, pady = 2)
 
-ctx = tk.Canvas(viewer, width=600, height=600)
+ctx = tk.Canvas(viewer, width=400, height=400)
 ctx.pack()
+img = tk.PhotoImage(width=400, height=400)
+ctx.create_image(0, 0, image=img, anchor=tk.NW)
 
 # A list of the automata that are loaded.
 autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=automata.WRAP_GRID),
@@ -601,7 +603,6 @@ def load_automaton():
 
 	return aut
 
-
 def output_img():
 	global dictCustomRules
 	grid = []
@@ -623,14 +624,16 @@ def output_img():
 				)
 
 			if type(filename) is str and len(filename) > 0:
-				grid = autCurrent.generate_grid()
 				if (autCurrent.get_aut_type() == "Hodgepodge Machine"):
 					colors = utilities.linear_gradient((255, 0, 0), (0, 0, 0), 201)
+					grid = autCurrent.generate_grid(colors, ctx, img)
 					utilities.render_img(colors, grid, filename)
 				else:
 					colors = listColors
 					for i, c in enumerate(colors):
 						colors[i] = utilities.hex_string_to_RGB(c)
+
+					grid = autCurrent.generate_grid(colors, ctx, img)
 
 					utilities.render_img(colors, grid, filename)
 
