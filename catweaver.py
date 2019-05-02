@@ -418,6 +418,8 @@ class dialogNewCustomizeRules(sdg.Dialog):
 
 # Rule customization function
 def customizeRules():
+	automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG", "Seeds": "SEEDS"}
+	global dictCustomRules
 	def saveRuleFile(result):
 		if type(result) is dict:
 			savefile = fdg.asksaveasfilename( \
@@ -460,9 +462,14 @@ def customizeRules():
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
 		saveRuleFile(result)
+		if mbx.askyesno("Load New Ruleset?", "Do you want to load in your new rules?"):
+			dictCustomRules = result
+			labelCustomLoaded.config( \
+				state = "normal", \
+				text = "Custom Rules Loaded [" + automatonAcronyms[dictCustomRules[-1]] + ']' \
+			)
 	elif choice in (stringLoadRules, stringModifyRules) or \
 		(choice == stringViewRules and labelCustomLoaded.config()["state"][4] != "normal"):
-		global dictCustomRules
 		loadfile = fdg.askopenfilename( \
 			parent = base, \
 			title = "Select a file to load from:", \
@@ -496,7 +503,6 @@ def customizeRules():
 				else:
 					return None
 			dictCustomRules = loaded
-			automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG", "Seeds": "SEEDS"}
 			labelCustomLoaded.config( \
 				state = "normal", \
 				text = "Custom Rules Loaded [" + automatonAcronyms[dictCustomRules[-1]] + ']' \
