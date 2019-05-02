@@ -80,3 +80,14 @@ def linear_gradient(color1, color2, amount):
         index += 1
 
     return gradient
+
+# Render the current states of the automaton to the canvas.
+# Warning: I REALLY should not have used a Tkinter canvas
+# for this, since it's infuriatingly slow. Hence, it is
+# disabled by default on all automata aside from 1-dimensional
+# ones.
+def render_to_ctx(cells, colors, img):
+    for row in range(len(cells)):
+        for col in range(len(cells[0])):
+            cellState = cells[row][col]
+            img.put("#{:02x}{:02x}{:02x}".format(colors[cellState][0], colors[cellState][1], colors[cellState][2]), (col, row))

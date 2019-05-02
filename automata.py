@@ -1,5 +1,9 @@
 # Some frameworks for different kinds of cellular automata.
 
+# TODO: Refactor the code to work with numpy arrays instead
+# of ordinary Python arrays - it's a lot faster, and it would
+# have saved me a lot of headache if I used it to begin with.
+
 import copy
 import math
 import random
@@ -63,6 +67,7 @@ class Automaton:
     # the array of grid states.
     def generate_grid(self):
         pass
+
 
 '''
 The classic elementary automaton that we all know and love. The rule for
@@ -134,10 +139,7 @@ class ElementaryAutomaton(Automaton):
             cell_state = cellList[index]
         else:
             if (self.edgeRule == WRAP_GRID):
-                if (index < 0):
-                    cell_state = self.access_cell(cellList, index + self.size)
-                elif (index >= self.size):
-                    cell_state = self.access_cell(cellList, index - self.size)
+                cell_state = cellList[index % self.size]
 
         return cell_state
 
@@ -157,7 +159,7 @@ class ElementaryAutomaton(Automaton):
                 self.cells[i] = 1
 
 
-    def generate_grid(self):
+    def generate_grid(self, colors, ctx, img, previewRender=True):
         stateGrid = []
         stateGrid.append(copy.copy(self.cells))
 
@@ -165,7 +167,11 @@ class ElementaryAutomaton(Automaton):
             self.iterate()
             stateGrid.append(copy.copy(self.cells))
 
+        if (previewRender):
+            utilities.render_to_ctx(stateGrid, colors, img)
+
         return stateGrid
+
 
 '''
 LIFELIKE AUTOMATON
@@ -341,13 +347,18 @@ class LifelikeAutomaton:
                         self.cells[row][col] = 0
 
 
-    def generate_grid(self):
+    def generate_grid(self, colors, ctx, img, previewRender=False):
         stateGrid = []
         for i in range(self.iterations-1):
             self.iterate()
+            if (previewRender):
+                utilities.render_to_ctx(self.cells, colors, img)
+                ctx.update_idletasks()
+
 
         stateGrid = copy.copy(self.cells)
         return stateGrid
+
 
 '''
 Below this divider is the automata that do not have rulestrings or aren't
@@ -542,10 +553,13 @@ class HodgepodgeMachine(Automaton):
         print("Iteration #{0} completed.".format(iterNumber))
 
 
-    def generate_grid(self):
+    def generate_grid(self, colors, ctx, img, previewRender=False):
         stateGrid = []
         for i in range(self.iterCount - 1):
             self.iterate(i + 1)
+            if (previewRender):
+                utilities.render_to_ctx(self.cells, colors, img)
+                ctx.update_idletasks()
 
         stateGrid = copy.copy(self.cells)
         return stateGrid
