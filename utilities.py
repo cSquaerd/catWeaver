@@ -2,6 +2,8 @@
 from PIL import Image
 
 import math
+import numpy as np
+import cv2
 
 # this function "carves" part of a 2D array that we want.
 def carve_array(arr, start_col, start_row, row_length, col_length):
@@ -82,12 +84,26 @@ def linear_gradient(color1, color2, amount):
     return gradient
 
 # Render the current states of the automaton to the canvas.
-# Warning: I REALLY should not have used a Tkinter canvas
-# for this, since it's infuriatingly slow. Hence, it is
-# disabled by default on all automata aside from 1-dimensional
-# ones.
 def render_to_ctx(cells, colors, img):
     for row in range(len(cells)):
         for col in range(len(cells[0])):
             cellState = cells[row][col]
             img.put("#{:02x}{:02x}{:02x}".format(colors[cellState][0], colors[cellState][1], colors[cellState][2]), (col, row))
+
+
+# Because of weird stuff happening with the cv2 color rendering, I've
+# made this.
+def reverse_rgb(rgb):
+    return np.array((rgb[2], rgb[1], rgb[0]))
+
+
+# Render the current states of the automaton to a cv2 image.
+# Doing this SHOULD be faster than the canvas... hopefully, anyway.
+def render_to_cv2(cells, colors):
+    rgb = np.zeros((len(cells), len(cells[0]), 3), dtype=np.uint8)
+    for row in range(len(cells)):
+        for col in range(len(cells[0])):
+            rgb[row, col] = reverse_rgb(colors[cells[row][col]])
+
+    cv2.imshow("Render output", rgb)
+    cv2.waitKey(1)

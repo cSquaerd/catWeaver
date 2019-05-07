@@ -569,10 +569,10 @@ img = tk.PhotoImage(width=400, height=400)
 ctx.create_image(0, 0, image=img, anchor=tk.NW)
 
 # A list of the automata that are loaded.
-autList = [automata.ElementaryAutomaton(400, 30, 400, edgeRule=automata.WRAP_GRID),
-		   automata.ElementaryAutomaton(400, 110, 400, edgeRule=automata.WRAP_GRID),
+autList = [automata.ElementaryAutomaton(edgeRule=automata.WRAP_GRID),
+		   automata.ElementaryAutomaton(rule=110, edgeRule=automata.WRAP_GRID),
 		   None,
-		   None,
+		   automata.AntAutomaton(edgeRule=automata.WRAP_GRID),
 		   automata.LifelikeAutomaton(400, 400, "B2/S", 100, \
 		   							  edgeRule=automata.WRAP_GRID, \
 									  startConfig=automata.RANDOM_CENTER_5X5),
@@ -614,9 +614,34 @@ def load_automaton():
 		aut = automata.ElementaryAutomaton(400, rule, 400, edgeRule=automata.WRAP_GRID)
 
 	elif dictCustomRules[-1] == "Langton's Ant":
-		mbx.showerror("Error", "The implementation of Langton's ant is under construction.")
-		aut = autList[autOptions.index(optionVar.get())]
-		listColors = ["#000000", "#FFFFFF"]
+		listColors = []
+		directions = []
+		writeStates = []
+		ruleString = ""
+		current = None
+		for i in range(16):
+			if i in dictCustomRules:
+				current = dictCustomRules[i]
+				if current["varRotate"] == "L90":
+					directions.append("L")
+				elif current["varRotate"] == "R90":
+					directions.append("R")
+				elif current["varRotate"] == "180":
+					directions.append("B")
+				else:
+					directions.append("F")
+
+				writeStates.append(current["varWrite"])
+				listColors.append(current["varColor"])
+			else:
+				break
+
+		for i in range(len(directions)):
+			ruleString += "{}{},".format(directions[i], writeStates[i])
+
+		ruleString = ruleString[:len(ruleString)-1]
+
+		aut = automata.AntAutomaton(rule=ruleString, edgeRule=automata.WRAP_GRID)
 
 	else:
 		mbx.showerror("Wait, what?", "This shouldn't be happening!")
@@ -627,17 +652,18 @@ def load_automaton():
 
 def output_img():
 	global dictCustomRules
+	global listColors
 	grid = []
 	colors = []
 	autCurrent = None
 	try:
 		if not dictCustomRules:
 			autCurrent = autList[autOptions.index(optionVar.get())]
+			listColors = ["#000000", "#ffffff"]
 		else:
 			autCurrent = load_automaton()
 
-		autCurrent.reset_board()
-		if not (autCurrent.is_empty()):
+		if (not (autCurrent.is_empty()) or autCurrent.get_aut_type() == "Ant Automaton"):
 			filename = fdg.asksaveasfilename( \
 				parent = base, \
 				title = "Save image to:", \
@@ -648,14 +674,17 @@ def output_img():
 			if type(filename) is str and len(filename) > 0:
 				if (autCurrent.get_aut_type() == "Hodgepodge Machine"):
 					colors = utilities.linear_gradient((255, 0, 0), (0, 0, 0), 201)
-					grid = autCurrent.generate_grid(colors, ctx, img)
+					autCurrent.set_iteration_count(sdg.askinteger("Iteration count", "How many iterations will the automaton run for?"))
+					grid = autCurrent.generate_grid(colors)
 					utilities.render_img(colors, grid, filename)
 				else:
+					if not (autCurrent.get_aut_type() == "Elementary Automaton"):
+						autCurrent.set_iteration_count(sdg.askinteger("Iteration count", "How many iterations will the automaton run for?"))
 					colors = listColors
 					for i, c in enumerate(colors):
 						colors[i] = utilities.hex_string_to_RGB(c)
 
-					grid = autCurrent.generate_grid(colors, ctx, img)
+					grid = autCurrent.generate_grid(colors)
 
 					utilities.render_img(colors, grid, filename)
 

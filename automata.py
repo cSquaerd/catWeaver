@@ -20,6 +20,12 @@ CENTER_PIXEL      = 0        # The pixel in the center is on by default.
 FULLY_RANDOM      = 1        # Every cell starts at a random state.
 RANDOM_CENTER_5X5 = 2        # The cells in a 5x5 grid in the center start at random states. Not valid in 1D automata.
 
+# Ant states, which cycle clockwise.
+UP      = 0
+RIGHT   = 1
+DOWN    = 2
+LEFT    = 3
+
 '''
 This is the general layout of an automaton class.
 I'll explain each one of these functions in great detail...
@@ -50,8 +56,8 @@ class Automaton:
     def set_iteration_count(self):
         pass
 
-    # Changes the state of the cell at the desired index.
-    def set_cell_state(self):
+    # Changes the edge rule.
+    def set_edge_rule(self):
         pass
 
     # Checks the state of the cell according to the edge-detection rule.
@@ -70,6 +76,8 @@ class Automaton:
 
 
 '''
+ELEMENTARY AUTOMATON
+
 The classic elementary automaton that we all know and love. The rule for
 the next state of each cell is defined by an 8-bit number (0-255), for which
 each bit corresponds to a different arrangement of cell states in a cell's
@@ -79,7 +87,7 @@ Rule definition: An 8-bit number, with each bit corresponding to a
 configuration of different cell states.
 '''
 class ElementaryAutomaton(Automaton):
-    def __init__(self, size, rule, iterations, edgeRule = DEAD_EDGE, \
+    def __init__(self, size=400, rule=30, iterations=400, edgeRule = DEAD_EDGE, \
                  startConfig = CENTER_PIXEL):
         self.cells = [0 for i in range(size)]
         self.size = size
@@ -144,10 +152,6 @@ class ElementaryAutomaton(Automaton):
         return cell_state
 
 
-    def set_cell_state(self, index, state):
-        self.cells[index] = state
-
-
     def iterate(self):
         prevCells = copy.copy(self.cells)
         stateNumber = 0
@@ -159,7 +163,7 @@ class ElementaryAutomaton(Automaton):
                 self.cells[i] = 1
 
 
-    def generate_grid(self, colors, ctx, img, previewRender=True):
+    def generate_grid(self, colors):
         stateGrid = []
         stateGrid.append(copy.copy(self.cells))
 
@@ -167,10 +171,156 @@ class ElementaryAutomaton(Automaton):
             self.iterate()
             stateGrid.append(copy.copy(self.cells))
 
-        if (previewRender):
-            utilities.render_to_ctx(stateGrid, colors, img)
-
+        utilities.render_to_cv2(stateGrid, colors)
         return stateGrid
+
+
+'''
+ANT AUTOMATON
+
+An "ant" is a kind of automaton that is basically a 2D manifestation of a
+Turing machine. The concept is that, starting at the center of a group of
+tiles, an ant moves around and changes things. A rule for an ant's movement
+generally looks like this:
+
+- Check state of current tile
+- Rotate in some direction
+- Change state of current tile
+- Move forward
+
+The directions that the ant can rotate are, as follows, L, R, and B.
+"L" means that it rotates left 90 degrees, "R" means it rotates right 90
+degrees, and "B" means it rotates 180 degrees. For each possible cell
+state, our rule string will have a direction and a "new state". For instance,
+the most famous ant - Langton's ant - has a rule string will be R1,L0.
+This basically means that, if the cell it's on has state 0 (for which the
+rule is R1), it will turn right and then write state 1 to the cell, and if
+it has state 1 (L0), it will turn left and write state 0. Ant automata don't
+have starting configurations, other than the placement of the ant itself,
+which always start at the center of the grid.
+'''
+class AntAutomaton(Automaton):
+    def __init__(self, rows=400, columns=400, rule="R1,L0", iterations=100000,
+                 edgeRule=DEAD_EDGE):
+        self.rows = rows
+        self.cols = columns
+        self.cells = [[0 for i in range(columns)] for i in range(rows)]
+        self.iterations = iterations
+        self.edgeRule = edgeRule
+
+        self.directions = []
+        self.states = []
+
+        strSplit = rule.split(",")
+        for s in strSplit:
+            self.directions.append(s[0])
+            self.states.append(int(s[1:]))
+
+        self.antX = columns // 2
+        self.antY = rows // 2
+        self.antDirection = UP
+
+
+    def get_aut_type(self):
+        return "Ant Automaton"
+
+
+    def reset_board(self):
+        self.antX = self.cols // 2
+        self.antY = self.rows // 2
+        self.antDirection = UP
+
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.cells[row][col] = 0
+
+
+
+    def is_empty(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if not (self.cells[row][col] == 0):
+                    return False
+
+
+        return True
+
+
+    def resize(self, rows=400, columns=400):
+        self.rows = rows
+        self.cols = columns
+        self.cells = [[0 for col in range(columns)] for row in range(rows)]
+        self.antDirection = UP
+
+        self.antX = self.cols // 2
+        self.antY = self.rows // 2
+
+
+    def set_iteration_count(self, iterCount):
+        self.iterations = iterCount
+
+
+    def set_edge_rule(self, edgeRule):
+        self.edgeRule = edgeRule
+
+
+    def access_cell(self, x, y):
+        actualX = 0
+        actualY = 0
+        if (x >= 0 and x < self.cols):
+            actualX = x
+        else:
+            if self.edgeRule == WRAP_GRID:
+                actualX = x % self.cols
+            else:
+                actualX = utilities.clamp(x, 0, self.cols-1)
+
+
+        if (y >= 0 and y < self.rows):
+            actualY = y
+        else:
+            if self.edgeRule == WRAP_GRID:
+                actualY = y % self.rows
+            else:
+                actualY = utilities.clamp(y, 0, self.rows-1)
+
+
+        return actualX, actualY
+
+
+    def _move(self):
+        if self.antDirection == UP:
+            self.antX, self.antY = self.access_cell(self.antX, self.antY - 1)
+        elif self.antDirection == RIGHT:
+            self.antX, self.antY = self.access_cell(self.antX + 1, self.antY)
+        elif self.antDirection == DOWN:
+            self.antX, self.antY = self.access_cell(self.antX, self.antY + 1)
+        elif self.antDirection == LEFT:
+            self.antX, self.antY = self.access_cell(self.antX - 1, self.antY)
+
+
+    def iterate(self):
+        currentState = self.cells[self.antY][self.antX]
+        nextState = self.states[self.cells[self.antY][self.antX]]
+        turnDirection = self.directions[self.cells[self.antY][self.antX]]
+
+        self.cells[self.antY][self.antX] = nextState
+        if turnDirection == "L":
+            self.antDirection = (self.antDirection - 1) % 4
+        elif turnDirection == "R":
+            self.antDirection = (self.antDirection + 1) % 4
+        elif turnDirection == "B":
+            self.antDirection = (self.antDirection + 2) % 4
+
+        self._move()
+
+    def generate_grid(self, colors):
+        self.reset_board()
+        for i in range(self.iterations):
+            self.iterate()
+
+        utilities.render_to_cv2(self.cells, colors)
+        return self.cells
 
 
 '''
@@ -319,7 +469,7 @@ class LifelikeAutomaton:
         return cellState
 
 
-    def iterate(self):
+    def iterate(self, iteration):
         prevCells = copy.deepcopy(self.cells)
         stateNumber = 0
         for row in range(self.rows):
@@ -347,17 +497,19 @@ class LifelikeAutomaton:
                         self.cells[row][col] = 0
 
 
-    def generate_grid(self, colors, ctx, img, previewRender=False):
-        stateGrid = []
-        for i in range(self.iterations-1):
-            self.iterate()
-            if (previewRender):
-                utilities.render_to_ctx(self.cells, colors, img)
-                ctx.update_idletasks()
+        print("Iteration #{} completed.".format(iteration))
 
 
+    def generate_grid(self, colors):
         stateGrid = copy.copy(self.cells)
+        for i in range(self.iterations-1):
+            self.iterate(i+1)
+            utilities.render_to_cv2(self.cells, colors)
+
+        stateGrid, self.cells = self.cells, stateGrid
         return stateGrid
+
+
 
 
 '''
@@ -553,13 +705,11 @@ class HodgepodgeMachine(Automaton):
         print("Iteration #{0} completed.".format(iterNumber))
 
 
-    def generate_grid(self, colors, ctx, img, previewRender=False):
-        stateGrid = []
+    def generate_grid(self, colors):
+        stateGrid = copy.copy(self.cells)
         for i in range(self.iterCount - 1):
             self.iterate(i + 1)
-            if (previewRender):
-                utilities.render_to_ctx(self.cells, colors, img)
-                ctx.update_idletasks()
+            utilities.render_to_cv2(self.cells, colors)
 
-        stateGrid = copy.copy(self.cells)
+        stateGrid, self.cells = self.cells, stateGrid
         return stateGrid
