@@ -421,6 +421,8 @@ def customizeRules():
 	automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG", "Seeds": "SEEDS"}
 	global dictCustomRules
 	def askLoad(rules):
+		if rules is None:
+			return None
 		global dictCustomRules
 		if mbx.askyesno("Load Ruleset?", "Do you want to load in your new rules?"):
 			dictCustomRules = rules
@@ -467,12 +469,14 @@ def customizeRules():
 				#print("Main result:", result)
 				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
+				return 0
+			return None
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
-		saveRuleFile(result)
-		askLoad(result)
+		if saveRuleFile(result) is not None:
+			askLoad(result)
 	elif choice in (stringLoadRules, stringModifyRules) or \
 		(choice == stringViewRules and labelCustomLoaded.config()["state"][4] != "normal"):
 		loadfile = fdg.askopenfilename( \
@@ -518,8 +522,8 @@ def customizeRules():
 
 		if choice == stringModifyRules:
 			result = dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules).result
-			saveRuleFile(result)
-			askLoad(result)
+			if saveRuleFile(result) is not None:
+				askLoad(result)
 	if choice == stringViewRules:
 		dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules, True)
 	return None
