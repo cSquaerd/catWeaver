@@ -543,6 +543,13 @@ def loadCheck(newOption):
 		else:
 			optionVar.set("Rule 30" if dictCustomRules[-1] == "Rule N" else "Langton\'s Ant")
 
+def changeWorkingDir():
+	global id
+	newDir = fdg.askdirectory(title = "Choose a new folder to work in", initialdir = id)
+	if len(newDir) > 0:
+		#print(newDir)
+		id = newDir
+
 base = tk.Tk()
 base.title("Cellular Automata Tiling Weaver")
 base.resizable(False, False)
@@ -682,6 +689,9 @@ labelCustomLoaded.grid(row = 4, column = 0, columnspan = 2, pady = 5, sticky = t
 
 saveBMPButton = tk.Button(settings, text="Save image", command=output_img)
 saveBMPButton.grid(row = 5, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
+
+changeWDButton = tk.Button(settings, text = "Change Working Folder", command = changeWorkingDir)
+changeWDButton.grid(row = 6, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 # Sean, I didn't know about the sticky option to get the buttons to
 # Span the frame theyre in. A neat trick. - Charlie
 
