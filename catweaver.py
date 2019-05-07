@@ -421,6 +421,8 @@ def customizeRules():
 	automatonAcronyms = {"Rule N": "ELMT", "Langton\'s Ant": "LANG", "Seeds": "SEEDS"}
 	global dictCustomRules
 	def askLoad(rules):
+		if rules is None:
+			return None
 		global dictCustomRules
 		if mbx.askyesno("Load Ruleset?", "Do you want to load in your new rules?"):
 			dictCustomRules = rules
@@ -467,12 +469,14 @@ def customizeRules():
 				#print("Main result:", result)
 				#print("In JSON Format:", json.dumps(result, sort_keys = True, indent = 4))
 				mbx.showinfo("Success!", "Your file was saved successfully.")
+				return 0
+			return None
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
 	if choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
-		saveRuleFile(result)
-		askLoad(result)
+		if saveRuleFile(result) is not None:
+			askLoad(result)
 	elif choice in (stringLoadRules, stringModifyRules) or \
 		(choice == stringViewRules and labelCustomLoaded.config()["state"][4] != "normal"):
 		loadfile = fdg.askopenfilename( \
@@ -518,8 +522,8 @@ def customizeRules():
 
 		if choice == stringModifyRules:
 			result = dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules).result
-			saveRuleFile(result)
-			askLoad(result)
+			if saveRuleFile(result) is not None:
+				askLoad(result)
 	if choice == stringViewRules:
 		dialogNewCustomizeRules(base, optionVar.get(), dictCustomRules, True)
 	return None
@@ -538,6 +542,13 @@ def loadCheck(newOption):
 			)
 		else:
 			optionVar.set("Rule 30" if dictCustomRules[-1] == "Rule N" else "Langton\'s Ant")
+
+def changeWorkingDir():
+	global id
+	newDir = fdg.askdirectory(title = "Choose a new folder to work in", initialdir = id)
+	if len(newDir) > 0:
+		#print(newDir)
+		id = newDir
 
 base = tk.Tk()
 base.title("Cellular Automata Tiling Weaver")
@@ -678,6 +689,9 @@ labelCustomLoaded.grid(row = 4, column = 0, columnspan = 2, pady = 5, sticky = t
 
 saveBMPButton = tk.Button(settings, text="Save image", command=output_img)
 saveBMPButton.grid(row = 5, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
+
+changeWDButton = tk.Button(settings, text = "Change Working Folder", command = changeWorkingDir)
+changeWDButton.grid(row = 6, column = 0, columnspan = 2, pady = 5, sticky=tk.W + tk.E)
 # Sean, I didn't know about the sticky option to get the buttons to
 # Span the frame theyre in. A neat trick. - Charlie
 
