@@ -24,6 +24,7 @@ stringCreateRules = "Create Rules (with dialog)"
 stringLoadRules = "Load Rules (from .json)"
 stringViewRules = "View Rules (from .json)"
 stringModifyRules = "Modify Rules (from .json)"
+stringUnloadRules = "Unload Rules"
 tupleRuleNs = ("Rule 30", "Rule 110")
 tupleFileTypes = ( \
 	("Custom Automaton Rules", "*.json"), \
@@ -57,7 +58,8 @@ class dialogRootCustomizeRules(sdg.Dialog):
 				stringCreateRules, \
 				stringLoadRules, \
 				stringViewRules, \
-				stringModifyRules \
+				stringModifyRules, \
+				stringUnloadRules \
 			)
 			self.optionsCustomize.pack()
 
@@ -473,7 +475,10 @@ def customizeRules():
 			return None
 
 	choice = dialogRootCustomizeRules(base, optionVar.get()).result
-	if choice == stringCreateRules:
+	if choice == stringUnloadRules:
+		dictCustomRules = {}
+		labelCustomLoaded.config(text = "Custom Rules Unloaded", state = "disabled")
+	elif choice == stringCreateRules:
 		result = dialogNewCustomizeRules(base, optionVar.get()).result
 		if saveRuleFile(result) is not None:
 			askLoad(result)
