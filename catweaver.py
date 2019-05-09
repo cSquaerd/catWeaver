@@ -556,7 +556,8 @@ def changeWorkingDir():
 		id = newDir
 
 base = tk.Tk()
-base.title("Cellular Automata Tiling Weaver")
+#base.title("Cellular Automata Tiling Weaver")
+base.title("C.A.T. Weaver")
 base.resizable(False, False)
 
 # Some fonts
@@ -569,7 +570,7 @@ settings = tk.Frame(base, bd=4)
 settings.grid(row = 0, column = 1, padx = 2, pady = 2)
 
 ctx = tk.Canvas(viewer, width=400, height=400)
-ctx.pack()
+#ctx.pack()
 img = tk.PhotoImage(width=400, height=400)
 ctx.create_image(0, 0, image=img, anchor=tk.NW)
 
